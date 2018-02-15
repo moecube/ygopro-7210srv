@@ -18,6 +18,11 @@ local extra_sp={
 	[TYPE_LINK]={[0]={},[1]={}},
 }
 
+local xyz_plain={[0]={},[1]={}}
+local xyz_adv={[0]={},[1]={}}
+
+local extra_fixed={62709239,95169481}
+
 function Auxiliary.SplitData(inputstr)
 	local t={}
 	for str in string.gmatch(inputstr,"([^|]+)") do
@@ -26,7 +31,12 @@ function Auxiliary.SplitData(inputstr)
 	return t
 end
 function Auxiliary.LoadDB(p,pool)
-	local file=io.popen("echo \"select * from datas;\" | sqlite3 "..pool)
+	local file=nil
+	if _WIN32 then
+		file=io.popen("bash echo \"select * from datas;\" | sqlite3 "..pool)
+	else
+		file=io.popen("echo \"select * from datas;\" | sqlite3 "..pool)
+	end
 	for line in file:lines() do
 		local data=Auxiliary.SplitData(line)
 		local code=data[1]
@@ -37,6 +47,13 @@ function Auxiliary.LoadDB(p,pool)
 			for tp,list in pairs(extra_sp) do
 				if (cat & tp)>0 then
 					table.insert(list[p],code)
+				end
+			end
+			if (cat & TYPE_XYZ)>0 then
+				if lv>4 then
+					table.insert(xyz_adv[p],code)
+				else
+					table.insert(xyz_plain[p],code)				
 				end
 			end
 		elseif (cat & TYPE_TOKEN)==0 then
@@ -76,7 +93,7 @@ function Auxiliary.SaveDeck()
 		Duel.SavePickDeck(p,g)
 	end
 end
-function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy)
+function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 	if not Duel.IsPlayerNeedToPickDeck(p) then return end
 	local g1=Group.CreateGroup()
 	local g2=Group.CreateGroup()
@@ -90,7 +107,8 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy)
 		local pick_count=0
 		while pick_count<count do
 			local code=plist[math.random(#plist)]
-			if not ag:IsExists(Card.IsCode,1,nil,code) then
+			local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
+			if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and g:IsExists(Card.IsLevel,1,nil,lv)) then
 				local card=Duel.CreateToken(p,code)
 				g:AddCard(card)
 				ag:AddCard(card)
@@ -106,12 +124,19 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy)
 			local ex_pick_count=0
 			while ex_pick_count<ex_count do
 				local code=ex_plist[math.random(#ex_plist)]
-				if not ag:IsExists(Card.IsCode,1,nil,code) then
+				local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
+				if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and g:IsExists(Card.IsLevel,1,nil,lv)) then
 					local card=Duel.CreateToken(p,code)
 					g:AddCard(card)
 					ag:AddCard(card)
 					ex_pick_count=ex_pick_count+1
 				end
+			end
+		end
+		if fixed then
+			for _,code in ipairs(fixed) do
+				local card=Duel.CreateToken(p,code)
+				g:AddCard(card)
 			end
 		end
 		Duel.SendtoDeck(g,nil,0,REASON_RULE)
@@ -171,13 +196,22 @@ function Auxiliary.StartPick(e)
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
-				Auxiliary.SinglePick(p,list,4,nil,nil,false)
+				if tp==TYPE_XYZ then
+					Auxiliary.SinglePick(p,xyz_plain,3,xyz_adv,1,false)
+				else
+					local lv_diff=(tp==TYPE_SYNCHRO)
+					Auxiliary.SinglePick(p,list,4,nil,nil,false,lv_diff)
+				end
 			end
 		end
 	end
 	for i=1,2 do
 		for p=0,1 do
-			Auxiliary.SinglePick(p,extra,4,nil,nil,false)
+			if i==1 then
+				Auxiliary.SinglePick(p,extra,4,nil,nil,false)
+			else
+				Auxiliary.SinglePick(p,extra,2,nil,nil,false,false,extra_fixed)
+			end
 		end
 	end
 	Auxiliary.SaveDeck()

@@ -23,6 +23,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "SetCardData", scriptlib::card_set_card_data },
 	{ "GetLinkMarker", scriptlib::card_get_link_marker },
 	{ "GetOriginalLinkMarker", scriptlib::card_get_origin_link_marker },
+	{ "IsXyzSummonableByRose", scriptlib::card_is_xyz_summonable_by_rose },	
 	
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },
@@ -333,6 +334,10 @@ static const struct luaL_Reg effectlib[] = {
 };
 
 static const struct luaL_Reg grouplib[] = {
+	//metatable
+	{ "__add", scriptlib::group_meta_add },
+	{ "__sub", scriptlib::group_meta_sub },
+
 	{ "CreateGroup", scriptlib::group_new },
 	{ "KeepAlive", scriptlib::group_keep_alive },
 	{ "DeleteGroup", scriptlib::group_delete },
@@ -344,6 +349,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "GetNext", scriptlib::group_get_next },
 	{ "GetFirst", scriptlib::group_get_first },
 	{ "GetCount", scriptlib::group_get_count },
+	{ "__len", scriptlib::group_get_count },
 	{ "ForEach", scriptlib::group_for_each },
 	{ "Filter", scriptlib::group_filter },
 	{ "FilterCount", scriptlib::group_filter_count },
@@ -382,6 +388,9 @@ static const struct luaL_Reg duellib[] = {
 	{ "Exile", scriptlib::duel_exile },
 	{ "DisableActionCheck", scriptlib::duel_disable_action_check },
 	{ "SetMetatable", scriptlib::duel_setmetatable },
+	{ "MoveTurnCount", scriptlib::duel_move_turn_count },
+	{ "GetCardsInZone", scriptlib::duel_get_cards_in_zone },
+	{ "XyzSummonByRose", scriptlib::duel_xyz_summon_by_rose },
 
 	{ "EnableGlobalFlag", scriptlib::duel_enable_global_flag },
 	{ "GetLP", scriptlib::duel_get_lp },
@@ -653,6 +662,34 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	load_script((char*) "./script/constant.lua");
 	load_script((char*) "./script/utility.lua");
 	//load kpro constant
+	//card data constants
+	lua_pushinteger(lua_state, CARDDATA_CODE);
+	lua_setglobal(lua_state, "CARDDATA_CODE");
+	lua_pushinteger(lua_state, CARDDATA_ALIAS);
+	lua_setglobal(lua_state, "CARDDATA_ALIAS");
+	lua_pushinteger(lua_state, CARDDATA_SETCODE);
+	lua_setglobal(lua_state, "CARDDATA_SETCODE");
+	lua_pushinteger(lua_state, CARDDATA_TYPE);
+	lua_setglobal(lua_state, "CARDDATA_TYPE");
+	lua_pushinteger(lua_state, CARDDATA_LEVEL);
+	lua_setglobal(lua_state, "CARDDATA_LEVEL");
+	lua_pushinteger(lua_state, CARDDATA_ATTRIBUTE);
+	lua_setglobal(lua_state, "CARDDATA_ATTRIBUTE");
+	lua_pushinteger(lua_state, CARDDATA_ATTRIBUTE);
+	lua_setglobal(lua_state, "CARDDATA_ATTRIBUTE");
+	lua_pushinteger(lua_state, CARDDATA_RACE);
+	lua_setglobal(lua_state, "CARDDATA_RACE");
+	lua_pushinteger(lua_state, CARDDATA_ATTACK);
+	lua_setglobal(lua_state, "CARDDATA_ATTACK");
+	lua_pushinteger(lua_state, CARDDATA_DEFENSE);
+	lua_setglobal(lua_state, "CARDDATA_DEFENSE");
+	lua_pushinteger(lua_state, CARDDATA_LSCALE);
+	lua_setglobal(lua_state, "CARDDATA_LSCALE");
+	lua_pushinteger(lua_state, CARDDATA_RSCALE);
+	lua_setglobal(lua_state, "CARDDATA_RSCALE");
+	lua_pushinteger(lua_state, CARDDATA_LINK_MARKER);
+	lua_setglobal(lua_state, "CARDDATA_LINK_MARKER");
+	//effects
 	lua_pushinteger(lua_state, EFFECT_CHANGE_LINK_MARKER_KOISHI);
 	lua_setglobal(lua_state, "EFFECT_CHANGE_LINK_MARKER_KOISHI");
 	lua_pushinteger(lua_state, EFFECT_ADD_LINK_MARKER_KOISHI);
@@ -661,12 +698,18 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "EFFECT_REMOVE_LINK_MARKER_KOISHI");
 	lua_pushinteger(lua_state, EFFECT_CANNOT_LOSE_KOISHI);
 	lua_setglobal(lua_state, "EFFECT_CANNOT_LOSE_KOISHI");
+	//music hints
 	lua_pushinteger(lua_state, HINT_MUSIC);
 	lua_setglobal(lua_state, "HINT_MUSIC");
 	lua_pushinteger(lua_state, HINT_SOUND);
 	lua_setglobal(lua_state, "HINT_SOUND");
 	lua_pushinteger(lua_state, HINT_MUSIC_OGG);
 	lua_setglobal(lua_state, "HINT_MUSIC_OGG");
+	//detect operating system
+#ifdef _WIN32
+	lua_pushboolean(lua_state, 1);
+	lua_setglobal(lua_state, "_WIN32");
+#endif
 	//load init.lua by MLD
 	load_script((char*) "./expansions/script/init.lua");
 	//2pick rule
