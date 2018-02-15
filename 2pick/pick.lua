@@ -11,6 +11,8 @@ local main_trap={[0]={},[1]={}}
 local main_plain={[0]={},[1]={}}
 local main_adv={[0]={},[1]={}}
 
+local main_new={[0]={},[1]={}}
+
 local extra_sp={
 	[TYPE_FUSION]={[0]={},[1]={}},
 	[TYPE_SYNCHRO]={[0]={},[1]={}},
@@ -40,6 +42,7 @@ function Auxiliary.LoadDB(p,pool)
 	for line in file:lines() do
 		local data=Auxiliary.SplitData(line)
 		local code=data[1]
+		local ot=data[2]
 		local cat=data[5]
 		local lv=data[8] & 0xff
 		if (cat & TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_LINK)>0 then
@@ -57,6 +60,9 @@ function Auxiliary.LoadDB(p,pool)
 				end
 			end
 		elseif (cat & TYPE_TOKEN)==0 then
+			if (ot==4) then
+				table.insert(main_new[p],code)
+			end
 			if (cat & TYPE_MONSTER)>0 then
 				table.insert(main_monster[p],code)
 				if lv>4 then
@@ -173,7 +179,11 @@ function Auxiliary.StartPick(e)
 		local count=4
 		local ex_list=nil
 		local ex_count=nil
-		if i<3 then
+		if i==1 then
+			count=3
+			ex_list=main_new
+			ex_count=1
+		elseif i<4 then
 			count=3
 			ex_list=main_adv
 			ex_count=1
