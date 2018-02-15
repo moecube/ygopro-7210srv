@@ -175,7 +175,7 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	for i=1,5 do
-		local list=main_plain
+		local list=main
 		local count=4
 		local ex_list=nil
 		local ex_count=nil
@@ -184,6 +184,7 @@ function Auxiliary.StartPick(e)
 			ex_list=main_new
 			ex_count=1
 		elseif i<4 then
+			list=main_plain
 			count=3
 			ex_list=main_adv
 			ex_count=1
