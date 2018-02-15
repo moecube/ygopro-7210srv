@@ -16,6 +16,34 @@ public:
 	static int32 check_param(lua_State* L, int32 param_type, int32 index, BOOL retfalse = FALSE);
 	static int32 check_param_count(lua_State* L, int32 count);
 	static int32 check_action_permission(lua_State* L);
+	//2pick
+	static int32 duel_save_pick_deck(lua_State *L);
+	static int32 duel_is_player_need_to_pick_deck(lua_State *L);
+	static int32 duel_get_start_count(lua_State *L);
+	static int32 duel_reset_time_limit(lua_State *L);
+	//millux
+	static int32 card_is_ritual_type(lua_State *L);
+	//modded
+	static int32 card_set_entity_code(lua_State *L);
+	static int32 card_set_card_data(lua_State *L);
+	static int32 card_get_link_marker(lua_State *L);
+	static int32 card_get_origin_link_marker(lua_State *L);	
+	static int32 card_is_xyz_summonable_by_rose(lua_State *L);	
+	static int32 effect_set_owner(lua_State *L);
+	static int32 effect_get_range(lua_State *L);
+	static int32 effect_get_count_limit(lua_State *L);
+	static int32 duel_select_field(lua_State *L);
+	static int32 duel_get_master_rule(lua_State *L);
+	static int32 duel_read_card(lua_State *L);
+	static int32 duel_exile(lua_State *L);
+	static int32 duel_disable_action_check(lua_State *L);
+	static int32 duel_setmetatable(lua_State *L);
+	static int32 duel_move_turn_count(lua_State *L);
+	static int32 duel_get_cards_in_zone(lua_State *L);
+	static int32 duel_xyz_summon_by_rose(lua_State *L);
+	//metatable
+	static int32 group_meta_add(lua_State *L);
+	static int32 group_meta_sub(lua_State *L);
 
 	//card lib
 	static int32 card_get_code(lua_State *L);
@@ -334,6 +362,7 @@ public:
 	static int32 group_filter_count(lua_State *L);
 	static int32 group_filter_select(lua_State *L);
 	static int32 group_select(lua_State *L);
+	static int32 group_select_unselect(lua_State *L);
 	static int32 group_random_select(lua_State *L);
 	static int32 group_is_exists(lua_State *L);
 	static int32 group_check_with_sum_equal(lua_State *L);

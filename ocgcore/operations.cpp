@@ -510,7 +510,7 @@ int32 field::damage(uint16 step, effect* reason_effect, uint32 reason, uint8 rea
 		pduel->write_buffer32(amount);
 		raise_event(reason_card, EVENT_DAMAGE, reason_effect, reason, reason_player, playerid, amount);
 		if(reason == REASON_BATTLE && reason_card) {
-			if((player[playerid].lp <= 0) && (core.attack_target == 0) && reason_card->is_affected_by_effect(EFFECT_MATCH_KILL)) {
+			if((player[playerid].lp <= 0) && (core.attack_target == 0) && reason_card->is_affected_by_effect(EFFECT_MATCH_KILL) && !(is_player_affected_by_effect(playerid, EFFECT_CANNOT_LOSE_KOISHI))) {
 				pduel->write_buffer8(MSG_MATCH_KILL);
 				pduel->write_buffer32(reason_card->data.code);
 			}
@@ -2570,7 +2570,12 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		if(proc->value == SUMMON_TYPE_SYNCHRO)
 			matreason = REASON_SYNCHRO;
 		else if(proc->value == SUMMON_TYPE_XYZ)
+		{
 			matreason = REASON_XYZ;
+			//modded - rose xyz summon
+			pduel->game_field->rose_card = 0;
+			pduel->game_field->rose_level = 0;
+		}
 		else if(proc->value == SUMMON_TYPE_LINK)
 			matreason = REASON_LINK;
 		if (target->material_cards.size()) {
@@ -3198,6 +3203,12 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 			pduel->write_buffer8(HINT_CARD);
 			pduel->write_buffer8(0);
 			pduel->write_buffer32((*eit)->owner->data.code);
+			if((*eit)->description) {
+				pduel->write_buffer8(MSG_HINT);
+				pduel->write_buffer8(12);
+				pduel->write_buffer8(0);
+				pduel->write_buffer32((*eit)->description);
+			}
 		}
 		operation_replace(EFFECT_DESTROY_REPLACE, 5, targets);
 		return FALSE;
@@ -3302,6 +3313,12 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 						pduel->write_buffer8(HINT_CARD);
 						pduel->write_buffer8(0);
 						pduel->write_buffer32(eset[i]->owner->data.code);
+						if(eset[i]->description) {
+							pduel->write_buffer8(MSG_HINT);
+							pduel->write_buffer8(12);
+							pduel->write_buffer8(0);
+							pduel->write_buffer32(eset[i]->description);
+						}
 						indes = true;
 						break;
 					}
@@ -3332,6 +3349,12 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 							pduel->write_buffer8(HINT_CARD);
 							pduel->write_buffer8(0);
 							pduel->write_buffer32(eset[i]->owner->data.code);
+							if(eset[i]->description) {
+								pduel->write_buffer8(MSG_HINT);
+								pduel->write_buffer8(12);
+								pduel->write_buffer8(0);
+								pduel->write_buffer32(eset[i]->description);
+							}
 							indes = true;
 						}
 					} else {
@@ -3346,6 +3369,12 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 								pduel->write_buffer8(HINT_CARD);
 								pduel->write_buffer8(0);
 								pduel->write_buffer32(eset[i]->owner->data.code);
+								if(eset[i]->description) {
+									pduel->write_buffer8(MSG_HINT);
+									pduel->write_buffer8(12);
+									pduel->write_buffer8(0);
+									pduel->write_buffer32(eset[i]->description);
+								}
 								indes = true;
 							}
 						}

@@ -71,6 +71,7 @@ struct player_info {
 	int32 lp;
 	int32 start_count;
 	int32 draw_count;
+	int32 pick_needed;
 	uint32 used_location;
 	uint32 disabled_location;
 	uint32 extra_p_count;
@@ -171,6 +172,7 @@ struct processor {
 	processor_list subunits;
 	processor_unit reserved;
 	card_vector select_cards;
+	card_vector unselect_cards;
 	card_vector summonable_cards;
 	card_vector spsummonable_cards;
 	card_vector repositionable_cards;
@@ -340,6 +342,9 @@ public:
 	processor core;
 	return_value returns;
 	tevent nil_event;
+	//modded - for rose xyz summon
+	card* rose_card;
+	uint32 rose_level;
 
 	static int32 field_used_count[32];
 	explicit field(duel* pduel);
@@ -576,6 +581,7 @@ public:
 	int32 select_yes_no(uint16 step, uint8 playerid, uint32 description);
 	int32 select_option(uint16 step, uint8 playerid);
 	int32 select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max);
+	int32 select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 ok);
 	int32 select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 forced);
 	int32 select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count);
 	int32 select_position(uint16 step, uint8 playerid, uint32 code, uint8 positions);
@@ -767,6 +773,9 @@ public:
 #define PROCESSOR_REMOVEOL_S		160
 #define PROCESSOR_MOVETOFIELD_S		161
 
+#define PROCESSOR_SELECT_UNSELECT_CARD		180
+#define PROCESSOR_SELECT_UNSELECT_CARD_S	181
+
 //Hints
 #define HINT_EVENT				1
 #define HINT_MESSAGE			2
@@ -778,6 +787,10 @@ public:
 #define HINT_CODE				8
 #define HINT_NUMBER				9
 #define HINT_CARD				10
+//custom hints in KoishiPro for custom sound
+#define HINT_MUSIC				11
+#define HINT_SOUND				12
+#define HINT_MUSIC_OGG			13
 //
 #define CHINT_TURN				1
 #define CHINT_CARD				2
@@ -901,4 +914,25 @@ public:
 #define MSG_PLAYER_HINT			165
 #define MSG_MATCH_KILL			170
 #define MSG_CUSTOM_MSG			180
+
+#define MSG_SELECT_UNSELECT_CARD	190
+
+//card datas for Duel.ReadCard / Card.SetCardData, arranged by database format
+#define CARDDATA_CODE			1
+#define CARDDATA_ALIAS			2
+#define CARDDATA_SETCODE		3
+#define CARDDATA_TYPE			4
+#define CARDDATA_LEVEL			5
+#define CARDDATA_ATTRIBUTE		6
+#define CARDDATA_RACE			7
+#define CARDDATA_ATTACK			8
+#define CARDDATA_DEFENSE		9
+#define CARDDATA_LSCALE			10
+#define CARDDATA_RSCALE			11
+#define CARDDATA_LINK_MARKER	12
+
+//2pick
+#define MSG_SAVE_PICK_DECK		220
+#define MSG_RESET_TIME			221
+
 #endif /* FIELD_H_ */

@@ -13,6 +13,238 @@
 #include "group.h"
 #include "ocgapi.h"
 
+//2pick
+int32 scriptlib::duel_save_pick_deck(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 2);
+	int32 playerid = lua_tonumberint(L, 1);
+	if(playerid != 0 && playerid != 1)
+		luaL_error(L, "Parameter 1 should be 0 or 1.", 2);
+	group* pgroup =  *(group**) lua_touserdata(L, 2);
+	duel* pduel = pgroup->pduel;
+	if(pgroup->container.size() == 0)
+		luaL_error(L, "Deck empty.", 2);
+	pduel->write_buffer8(MSG_SAVE_PICK_DECK);
+	pduel->write_buffer8(playerid);
+	pduel->write_buffer8(pgroup->container.size());
+	for(auto cit = pgroup->container.begin(); cit != pgroup->container.end(); ++cit) {
+		pduel->write_buffer32((*cit)->data.code);
+	}
+	return 0;
+}
+int32 scriptlib::duel_is_player_need_to_pick_deck(lua_State * L) {
+	check_param_count(L, 1);
+	int32 p = lua_tonumberint(L, 1);
+	if(p != 0 && p != 1)
+		luaL_error(L, "Parameter 1 should be 0 or 1.", 2);
+	duel* pduel = interpreter::get_duel_info(L);
+	lua_pushboolean(L, pduel->game_field->player[p].pick_needed);
+	return 1;
+}
+int32 scriptlib::duel_get_start_count(lua_State * L) {
+	check_param_count(L, 1);
+	int32 p = lua_tonumberint(L, 1);
+	if(p != 0 && p != 1)
+		luaL_error(L, "Parameter 1 should be 0 or 1.", 2);
+	duel* pduel = interpreter::get_duel_info(L);
+	lua_pushinteger(L, pduel->game_field->player[p].start_count);
+	return 1;
+}
+int32 scriptlib::duel_reset_time_limit(lua_State * L) {
+	check_param_count(L, 1);
+	int32 p = lua_tonumberint(L, 1);
+	int32 time = 0;
+	if(p != 0 && p != 1)
+		luaL_error(L, "Parameter 1 should be 0 or 1.", 2);
+	if(lua_gettop(L) >= 2)
+		time = lua_tonumberint(L, 2);
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->write_buffer8(MSG_RESET_TIME);
+	pduel->write_buffer8(p);
+	pduel->write_buffer8(time);	
+	return 0;
+}
+//modded
+int32 scriptlib::duel_select_field(lua_State * L) {
+	check_action_permission(L);
+	check_param_count(L, 4);
+	int32 playerid = lua_tonumberint(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	uint32 flag1 = lua_tonumberint(L, 2);
+	uint32 flag2 = lua_tonumberint(L, 3);	
+	uint32 count = lua_tonumberint(L, 4);
+	if(count == 0)
+		return 0;
+	uint32 flag = (flag1 & 0xffff) | (flag2 << 16);
+	duel* pduel = interpreter::get_duel_info(L);
+	if(pduel->game_field->core.duel_rule >= 4) {
+		flag = (flag | (0xffffffff-0x3f7f3f7f));
+		card* pcard_1 = pduel->game_field->get_field_card(1-playerid, LOCATION_MZONE, 6);
+		card* pcard_2 = pduel->game_field->get_field_card(1-playerid, LOCATION_MZONE, 5);
+		if (pcard_1 && pcard_2) {
+			flag = (flag | (0xffffffff-0xff7fff1f));
+		} else if (!pcard_1 && pcard_2) {
+			flag = (flag | (0xffffffff-0xff5fff3f));
+		} else if (pcard_1 && !pcard_2) {
+			flag = (flag | (0xffffffff-0xff3fff5f));
+		} else {
+			flag = (flag | (0xffffffff-0xff1fff7f));
+		}
+	} else {
+		flag = (flag | (0xffffffff-0xff1fff1f));
+	}
+	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD_S, 0, 0, 0, playerid, flag, count);
+	return lua_yield(L, 0);
+}
+int32 scriptlib::duel_get_master_rule(lua_State * L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	lua_pushinteger(L, pduel->game_field->core.duel_rule);
+	return 1;
+}
+int32 scriptlib::duel_read_card(lua_State *L) {
+	check_param_count(L, 2);
+	int32 code = lua_tonumberint(L, 1);
+	card_data dat;
+	::read_card(code, &dat);
+	if(!dat.code)
+		return 0;
+	uint32 args = lua_gettop(L) - 1;
+	for(uint32 i = 0; i < args; ++i) {
+		int32 flag = lua_tonumberint(L, 2 + i);
+		switch(flag) {
+		case CARDDATA_CODE:
+			lua_pushinteger(L, dat.code);
+			break;
+		case CARDDATA_ALIAS:
+			lua_pushinteger(L, dat.alias);
+			break;
+		case CARDDATA_SETCODE:
+			lua_pushinteger(L, dat.setcode);
+			break;
+		case CARDDATA_TYPE:
+			lua_pushinteger(L, dat.type);
+			break;
+		case CARDDATA_LEVEL:
+			lua_pushinteger(L, dat.level);
+			break;
+		case CARDDATA_ATTRIBUTE:
+			lua_pushinteger(L, dat.attribute);
+			break;
+		case CARDDATA_RACE:
+			lua_pushinteger(L, dat.race);
+			break;
+		case CARDDATA_ATTACK:
+			lua_pushinteger(L, dat.attack);
+			break;
+		case CARDDATA_DEFENSE:
+			lua_pushinteger(L, dat.defense);
+			break;
+		case CARDDATA_LSCALE:
+			lua_pushinteger(L, dat.lscale);
+			break;
+		case CARDDATA_RSCALE:
+			lua_pushinteger(L, dat.rscale);
+			break;
+		case CARDDATA_LINK_MARKER:
+			lua_pushinteger(L, dat.link_marker);
+			break;
+		default:
+			lua_pushinteger(L, 0);
+			break;
+		}
+	}
+	return args;
+}
+int32 scriptlib::duel_exile(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 2);
+	card* pcard = 0;
+	group* pgroup = 0;
+	duel* pduel = 0;
+	if(check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
+		pcard = *(card**) lua_touserdata(L, 1);
+		pduel = pcard->pduel;
+	} else if(check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
+		pgroup = *(group**) lua_touserdata(L, 1);
+		pduel = pgroup->pduel;
+	} else
+		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
+	uint32 reason = lua_tonumberint(L, 2);
+	if(pcard)
+		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, 0, 0, POS_FACEUP);
+	else
+		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, 0, 0, POS_FACEUP);
+	pduel->game_field->core.subunits.back().type = PROCESSOR_SENDTO_S;
+	return lua_yield(L, 0);
+}
+int32 scriptlib::duel_disable_action_check(lua_State *L) {
+	check_param_count(L, 1);
+	int32 dis = lua_toboolean(L, 1);
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->lua->disable_action_check = dis;
+	return 0;
+}
+int32 scriptlib::duel_setmetatable(lua_State *L) {
+	check_param_count(L, 2);
+	if(!lua_isuserdata(L, 1))
+		luaL_error(L, "Parameter 1 should be \"Card\" or \"Effect\" or \"Group\".");
+	if(!lua_istable(L, 2))
+		luaL_error(L, "Parameter 2 should be \"Table\".");
+	lua_settop(L, 2);
+	lua_setmetatable(L, 1);	
+	return 0;
+}
+int32 scriptlib::duel_move_turn_count(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 turn_player = pduel->game_field->infos.turn_player;
+	pduel->game_field->infos.turn_id++;
+	pduel->game_field->infos.turn_id_by_player[turn_player]++;
+	pduel->write_buffer8(MSG_NEW_TURN);
+	pduel->write_buffer8(turn_player | 0x2);
+	return 0;
+}
+int32 scriptlib::duel_get_cards_in_zone(lua_State *L) {
+	check_param_count(L, 2);
+	uint32 rplayer = lua_tonumberint(L, 1);
+	if(rplayer != 0 && rplayer != 1)
+		return 0;
+	uint32 zone = lua_tonumberint(L, 2);
+	duel* pduel = interpreter::get_duel_info(L);
+	field::card_set cset;
+	pduel->game_field->get_cards_in_zone(&cset, zone, rplayer, LOCATION_MZONE);
+	pduel->game_field->get_cards_in_zone(&cset, zone, rplayer, LOCATION_SZONE);
+	pduel->game_field->get_cards_in_zone(&cset, zone >> 16, 1 - rplayer, LOCATION_MZONE);
+	pduel->game_field->get_cards_in_zone(&cset, zone >> 16, 1 - rplayer, LOCATION_SZONE);
+	group* pgroup = pduel->new_group(cset);
+	interpreter::group2value(L, pgroup);
+	return 1;
+}
+int32 scriptlib::duel_xyz_summon_by_rose(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 4);
+	check_param(L, PARAM_TYPE_CARD, 2);
+	check_param(L, PARAM_TYPE_CARD, 3);
+	check_param(L, PARAM_TYPE_CARD, 4);
+	uint32 playerid = lua_tonumberint(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	card* pcard = *(card**)lua_touserdata(L, 2);
+	card* rcard = *(card**) lua_touserdata(L, 3);
+	card* mcard = *(card**) lua_touserdata(L, 4);
+	duel* pduel = pcard->pduel;
+	group* materials = pduel->new_group(rcard);
+	materials->container.insert(mcard);
+	pduel->game_field->core.limit_xyz = materials;
+	pduel->game_field->core.limit_xyz_minc = 0;
+	pduel->game_field->core.limit_xyz_maxc = 0;
+	pduel->game_field->core.summon_cancelable = FALSE;
+	pduel->game_field->rose_card = rcard;
+	pduel->game_field->rose_level = mcard->get_level();
+	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_XYZ);
+	return lua_yield(L, 0);
+}
+
 int32 scriptlib::duel_enable_global_flag(lua_State *L) {
 	check_param_count(L, 1);
 	int32 flag = lua_tonumberint(L, 1);
@@ -772,6 +1004,7 @@ int32 scriptlib::duel_get_chain_material(lua_State *L) {
 	interpreter::effect2value(L, eset[0]);
 	return 1;
 }
+//modded
 int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
@@ -799,12 +1032,19 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 	pduel->write_buffer8(MSG_CONFIRM_DECKTOP);
 	pduel->write_buffer8(playerid);
 	pduel->write_buffer8(count);
+	field::card_set ccards;
+	uint32 reason = 0;
+	if(lua_gettop(L) >= 3)
+		reason = lua_tonumberint(L, 3);
 	for(uint32 i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit) {
 		pduel->write_buffer32((*cit)->data.code);
 		pduel->write_buffer8((*cit)->current.controler);
 		pduel->write_buffer8((*cit)->current.location);
 		pduel->write_buffer8((*cit)->current.sequence);
+		pduel->game_field->raise_single_event(*cit, 0, EVENT_CUSTOM+50000000, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, count);
+		ccards.insert(*cit);
 	}
+	pduel->game_field->raise_event(&ccards, EVENT_CUSTOM+50000000, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, count);	
 	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
@@ -1633,6 +1873,7 @@ int32 scriptlib::duel_get_location_count(lua_State *L) {
 	lua_pushinteger(L, pduel->game_field->get_useable_count(playerid, location, uplayer, reason, zone));
 	return 1;
 }
+//modded by Flandre
 int32 scriptlib::duel_get_mzone_count(lua_State *L) {
 	check_param_count(L, 1);
 	uint32 playerid = lua_tonumberint(L, 1);
@@ -1703,8 +1944,13 @@ int32 scriptlib::duel_get_location_count_fromex(lua_State *L) {
 	if(lua_gettop(L) >= 3 && !lua_isnil(L, 3)) {
 		if(check_param(L, PARAM_TYPE_CARD, 3, TRUE)) {
 			mcard = *(card**) lua_touserdata(L, 3);
+			mcard->set_status(STATUS_TO_LEAVE_FROMEX, TRUE);
 		} else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE)) {
 			mgroup = *(group**) lua_touserdata(L, 3);
+			for(auto cit = mgroup->container.begin(); cit != mgroup->container.end(); ++cit) {
+				card* gcard = *cit;
+				gcard->set_status(STATUS_TO_LEAVE_FROMEX, TRUE);
+			}
 		} else
 			luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 3);
 		for(int32 p = 0; p < 2; p++) {
@@ -1734,6 +1980,14 @@ int32 scriptlib::duel_get_location_count_fromex(lua_State *L) {
 		lua_pushinteger(L, pduel->game_field->get_useable_count_fromex(scard, playerid, uplayer, zone));
 	else
 		lua_pushinteger(L, pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone));
+	if(mcard)
+		mcard->set_status(STATUS_TO_LEAVE_FROMEX, FALSE);
+	if(mgroup){
+		for(auto cit = mgroup->container.begin(); cit != mgroup->container.end(); ++cit) {
+			card* gcard = *cit;
+			gcard->set_status(STATUS_TO_LEAVE_FROMEX, FALSE);
+		}		
+	}
 	if(swapped) {
 		pduel->game_field->player[0].used_location = used_location[0];
 		pduel->game_field->player[1].used_location = used_location[1];
@@ -3097,6 +3351,7 @@ int32 scriptlib::duel_select_position(lua_State * L) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_POSITION_S, 0, 0, 0, playerid + (positions << 16), pcard->data.code);
 	return lua_yield(L, 0);
 }
+//modded
 int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	check_action_permission(L);
 	check_param_count(L, 5);
@@ -3126,6 +3381,17 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 		flag = (flag & 0xffffff) | (plist << 24);
 	}
 	flag |= filter | 0xe0e0e0e0;
+	int32 allow_exzone = lua_toboolean(L, 6);
+	if (allow_exzone && pduel->game_field->core.duel_rule >= 4) {
+		if(pduel->game_field->is_location_useable(playerid, LOCATION_MZONE, 5)) {
+			ct1 = ct1 + 1;
+			flag = flag - (flag & 0x20);
+		}
+		if(pduel->game_field->is_location_useable(playerid, LOCATION_MZONE, 6)) {
+			ct1 = ct1 + 1;
+			flag = flag - (flag & 0x40);
+		}
+	}
 	if(count > ct1 + ct2 + ct3 + ct4)
 		count = ct1 + ct2 + ct3 + ct4;
 	if(count == 0)

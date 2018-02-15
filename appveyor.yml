@@ -26,6 +26,9 @@ install:
   # let premake happy
   - xcopy /E premake\* .
   
+  # patch lua
+  # - patch -p0 < lua\lua.patch
+    
   # premake
   - premake5 vs2015
   
@@ -37,6 +40,7 @@ build:
 
 after_build:
   - ps: move bin\release\ygopro.exe .
+  - git clone https://github.com/Smile-DK/ygopro-svrelease
   
   - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/purerosefallen/ygopro-server/archive/master.zip ; exit 0"
   - 7z x ygopro-server-master.zip
@@ -45,9 +49,9 @@ after_build:
   - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://nodejs.org/dist/v9.1.0/node-v9.1.0-win-x64.zip ; exit 0"
   - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/MicrosoftArchive/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip ; exit 0"
 
-  - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/purerosefallen/windbot/archive/master.zip ; exit 0"
-  - 7z x windbot-master.zip
-  - cd windbot-master
+  - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/purerosefallen/windbot/archive/pick.zip ; exit 0"
+  - 7z x windbot-pick.zip
+  - cd windbot-pick
   - msbuild /property:Configuration=Release /property:OutDir=../ygopro-server/windbot
 
   - cd ../ygopro-server
@@ -107,7 +111,7 @@ artifacts:
   - path: ygopro.exe
     name: ygopro
   - path: ygopro-server.7z
-    name: ygopro-server
+    name: ygopro-server	
 
 cache:
   - premake-5.0.0-alpha12-windows.zip
@@ -119,3 +123,4 @@ cache:
   - irrKlang-32bit-1.5.0.zip
   - premake-5.0.0-alpha10-windows.zip
   - Redis-x64-3.2.100.zip
+
