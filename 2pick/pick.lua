@@ -25,7 +25,7 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 
-local special_hanoi_force={44095762,35595518}
+local special_hanoi_force={[0]={44095762,35595518},[1]={44095762,35595518}}
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
