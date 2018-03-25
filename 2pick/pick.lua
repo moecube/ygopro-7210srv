@@ -25,6 +25,8 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 
+local special_hanoi_force={44095762,35595518}
+
 function Auxiliary.SplitData(inputstr)
 	local t={}
 	for str in string.gmatch(inputstr,"([^|]+)") do
@@ -225,6 +227,11 @@ function Auxiliary.StartPick(e)
 			end
 		end
 	end
+	
+	for p=0,1 do
+		Auxiliary.SinglePick(p,special_hanoi_force,1,nil,nil,true)
+	end
+	
 	Auxiliary.SaveDeck()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
