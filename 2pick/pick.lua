@@ -182,9 +182,9 @@ function Auxiliary.StartPick(e)
 		local ex_list=nil
 		local ex_count=nil
 		if i==1 then
-			count=3
-			ex_list=main_new
-			ex_count=1
+			count=2
+			ex_list=main_plain
+			ex_count=2
 		elseif i<4 then
 			list=main_plain
 			count=3
