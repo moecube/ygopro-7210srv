@@ -60,9 +60,6 @@ after_build:
 
   - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/Smile-DK/ygopro-scripts/archive/master.zip ; exit 0"
   - 7z x -y ygopro-scripts-master.zip
-  - rm -rf ygopro-scripts-master.zip
-  - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/Fluorohydride/ygopro-scripts/archive/master.zip ; exit 0"
-  - 7z x -y ygopro-scripts-master.zip
   - mv -f ygopro-scripts-master script
 
   - mkdir replay
@@ -91,7 +88,7 @@ after_build:
   - cd ..
 
   - cp -rf ygopro/cards.cdb windbot
-  - cp -rf config.json config.user.json  
+  - cp -rf config_build config
   - cp -rf ../node-v9.1.0-win-x64.zip .
   - 7z x node-v9.1.0-win-x64.zip
   - rm -rf node-v9.1.0-win-x64.zip
@@ -116,7 +113,7 @@ artifacts:
 cache:
   - premake-5.0.0-alpha12-windows.zip
   - libevent-2.0.22-stable.tar.gz
-  - freetype-2.8.tar.bz2
+  - freetype-2.8.1.tar.bz2
   - irrlicht-1.8.4.zip
   - lua-5.3.4.tar.gz
   - sqlite-amalgamation-3210000.zip
