@@ -1275,7 +1275,8 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_SUMMONING: {
-			pbuf += 8;
+			int summon_code = BufferIO::ReadInt32(pbuf);
+			pbuf += 4;
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1283,6 +1284,8 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 #ifdef YGOPRO_SERVER_MODE
 			NetServer::ReSendToPlayers(cache_recorder, replay_recorder);
 #endif
+			if(summon_code == 35595518)
+				SendDialogues(2002);
 			break;
 		}
 		case MSG_SUMMONED: {
@@ -1300,7 +1303,8 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_SPSUMMONING: {
-			pbuf += 8;
+			int summon_code = BufferIO::ReadInt32(pbuf);
+			pbuf += 4;
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1308,6 +1312,8 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 #ifdef YGOPRO_SERVER_MODE
 			NetServer::ReSendToPlayers(cache_recorder, replay_recorder);
 #endif
+			if(summon_code == 35595518)
+				SendDialogues(2002);
 			break;
 		}
 		case MSG_SPSUMMONED: {
@@ -1351,7 +1357,8 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_CHAINING: {
-			pbuf += 16;
+			int effect_code = BufferIO::ReadInt32(pbuf);
+			pbuf += 12;
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1359,6 +1366,9 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 #ifdef YGOPRO_SERVER_MODE
 			NetServer::ReSendToPlayers(cache_recorder, replay_recorder);
 #endif
+			//2pick dialogues - hanoi force
+			if(effect_code == 44095762)
+				SendDialogues(2001);
 			break;
 		}
 		case MSG_CHAINED: {
@@ -2017,6 +2027,20 @@ void SingleDuel::SwapPickDeck() {
 	bool pick_deck_saved_temp = pick_deck_saved[0];
 	pick_deck_saved[0] = pick_deck_saved[1];
 	pick_deck_saved[1] = pick_deck_saved_temp;
+}
+void SingleDuel::SendDialogues(int words) {
+	STOC_Chat scc;
+	scc.player = 15;
+	wchar_t* msg = L"[Server]: " + mainGame->GetSysString(words);
+	int msglen = BufferIO::CopyWStr(msg, scc.msg, 256);
+	NetServer::SendBufferToPlayer(players[0], STOC_CHAT, &scc, 4 + msglen * 2);
+	NetServer::ReSendToPlayer(players[1]);
+	for(auto pit = observers.begin(); pit != observers.end(); ++pit)
+		NetServer::ReSendToPlayer(*pit);
+#ifdef YGOPRO_SERVER_MODE
+	if(cache_recorder)
+		NetServer::ReSendToPlayer(cache_recorder);
+#endif
 }
 
 }

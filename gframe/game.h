@@ -105,6 +105,7 @@ public:
 	void LoadExpansionDB();
 	void LoadBetaDB();
 	void AddDebugMsg(char* msgbuf);
+	wchar_t* GetSysString(int code);
 #else
 	void MainLoop();
 	void BuildProjectionMatrix(irr::core::matrix4& mProjection, f32 left, f32 right, f32 bottom, f32 top, f32 znear, f32 zfar);

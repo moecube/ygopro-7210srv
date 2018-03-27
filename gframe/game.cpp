@@ -81,6 +81,9 @@ void Game::LoadBetaDB() {
 	}
 #endif
 }
+wchar_t* Game::GetSysString(int code) {
+	return dataManager.GetSysString(code);
+}
 #else //YGOPRO_SERVER_MODE
 bool Game::Initialize() {
 	srand(time(0));
