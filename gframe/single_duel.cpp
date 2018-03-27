@@ -2031,7 +2031,8 @@ void SingleDuel::SwapPickDeck() {
 void SingleDuel::SendDialogues(int words) {
 	STOC_Chat scc;
 	scc.player = 15;
-	wchar_t* msg = L"[Server]: " + mainGame->GetSysString(words);
+	wchar_t msg[256];
+	myswprintf(msg, L"[Server]: %ls", mainGame->GetSysString(words));
 	int msglen = BufferIO::CopyWStr(msg, scc.msg, 256);
 	NetServer::SendBufferToPlayer(players[0], STOC_CHAT, &scc, 4 + msglen * 2);
 	NetServer::ReSendToPlayer(players[1]);
