@@ -273,7 +273,18 @@ void SingleDuel::LeaveGame(DuelPlayer* dp) {
 #ifdef YGOPRO_SERVER_MODE
 			NetServer::ReSendToPlayers(cache_recorder, replay_recorder);
 #endif
+			if(dp == pplayer[0]) {
+				match_result[0] = 1;
+				match_result[1] = 1;
+				match_result[2] = 1;
+			} else {
+				match_result[0] = 0;
+				match_result[1] = 0;
+				match_result[2] = 0;
+			}
+			duel_count = 3;
 			EndDuel();
+			CountPickResult();
 			NetServer::SendPacketToPlayer(players[0], STOC_DUEL_END);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -455,6 +466,18 @@ void SingleDuel::StartDuel(DuelPlayer* dp) {
 	//reset 2pick deck
 	pick_deck_saved[0] = false;
 	pick_deck_saved[1] = false;
+	wchar_t pname_0[20];
+	wchar_t pname_1[20];
+	BufferIO::CopyWStr(players[0]->name, pname_0, 20);
+	BufferIO::CopyWStr(players[1]->name, pname_1, 20);
+	if(deckManager.LoadDeck(pname_0)){
+		pick_deck_saved[0] = true;
+		pick_deck[0] = deckManager.current_deck;
+	}
+	if(deckManager.LoadDeck(pname_1)){
+		pick_deck_saved[1] = true;
+		pick_deck[1] = deckManager.current_deck;
+	}
 }
 void SingleDuel::HandResult(DuelPlayer* dp, unsigned char res) {
 	if(res > 3)
@@ -554,8 +577,6 @@ void SingleDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 	pduel = create_duel(rnd.rand());
 	set_player_info(pduel, 0, host_info.start_lp, host_info.start_hand, host_info.draw_count, !pick_deck_saved[0]);
 	set_player_info(pduel, 1, host_info.start_lp, host_info.start_hand, host_info.draw_count, !pick_deck_saved[1]);
-	pick_deck_saved[0] = false;
-	pick_deck_saved[1] = false;
 	int opt = (int)host_info.duel_rule << 16;
 	if(host_info.no_shuffle_deck)
 		opt |= DUEL_PSEUDO_SHUFFLE;
@@ -633,6 +654,7 @@ void SingleDuel::Process() {
 }
 void SingleDuel::DuelEndProc() {
 	if(!match_mode) {
+		CountPickResult();
 		NetServer::SendPacketToPlayer(players[0], STOC_DUEL_END);
 		NetServer::ReSendToPlayer(players[1]);
 		for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -649,6 +671,7 @@ void SingleDuel::DuelEndProc() {
 		        || (winc[0] == 2 || (winc[0] == 1 && winc[2] == 2))
 		        || (winc[1] == 2 || (winc[1] == 1 && winc[2] == 2))
 		        || (winc[2] == 3 || (winc[0] == 1 && winc[1] == 1 && winc[2] == 1)) ) {
+			CountPickResult();
 			NetServer::SendPacketToPlayer(players[0], STOC_DUEL_END);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -749,6 +772,9 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			deckManager.LoadDeck(tdeck, cardlist, count, 0);
 			pick_deck[player] = tdeck;
 			pick_deck_saved[player] = true;
+			wchar_t pname[20];
+			BufferIO::CopyWStr(players[player]->name, pname, 20);
+			deckManager.SaveDeck(tdeck, pname);
 			break;			
 		}
 		case MSG_RESET_TIME: {
@@ -2007,6 +2033,36 @@ void SingleDuel::SwapPickDeck() {
 	bool pick_deck_saved_temp = pick_deck_saved[0];
 	pick_deck_saved[0] = pick_deck_saved[1];
 	pick_deck_saved[1] = pick_deck_saved_temp;
+}
+void SingleDuel::CountPickResult() {
+	if(players[0] != pplayer[0]) {
+		players[0] = pplayer[0];
+		players[1] = pplayer[1];
+		players[0]->type = 0;
+		players[1]->type = 1;
+		Deck d = pdeck[0];
+		pdeck[0] = pdeck[1];
+		pdeck[1] = d;
+		SwapPickDeck();
+	}
+	if (!pick_deck_saved[0] || !pick_deck_saved[1])
+		return;
+	int winc[3] = {0, 0, 0};
+	for(int i = 0; i < duel_count; ++i)
+		winc[match_result[i]]++;
+	int winner;
+	if(winc[0] > winc[1])
+		winner = 0;
+	else if(winc[1] > winc[0])
+		winner = 1;
+	else
+		return;
+	wchar_t pname_win[20];
+	wchar_t pname_lose[20];
+	BufferIO::CopyWStr(players[winner]->name, pname_win, 20);
+	BufferIO::CopyWStr(players[1 - winner]->name, pname_lose, 20);
+	deckManager.AddWinMark(pick_deck[winner], pname_win);
+	deckManager.AddLoseMark(pick_deck[1 - winner], pname_lose);
 }
 
 }

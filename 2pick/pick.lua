@@ -100,11 +100,9 @@ function Auxiliary.LoadCardPools()
 	end
 end
 
-function Auxiliary.SaveDeck()
-	for p=0,1 do
-		local g=Duel.GetFieldGroup(p,0xff,0)
-		Duel.SavePickDeck(p,g)
-	end
+function Auxiliary.SaveDeck(p)
+	local g=Duel.GetFieldGroup(p,0xff,0)
+	Duel.SavePickDeck(p,g)
 end
 function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 	if not Duel.IsPlayerNeedToPickDeck(p) then return end
@@ -238,9 +236,9 @@ function Auxiliary.StartPick(e)
 		Auxiliary.SinglePick(p,special_hanoi_force,1,nil,nil,true)
 	end
 	
-	Auxiliary.SaveDeck()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
+			Auxiliary.SaveDeck(p)
 			Duel.ShuffleDeck(p)
 			Duel.ResetTimeLimit(p)
 		end

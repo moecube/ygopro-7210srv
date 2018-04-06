@@ -42,6 +42,7 @@ public:
 	static void SingleTimer(evutil_socket_t fd, short events, void* arg);
 	//2pick
 	void SwapPickDeck();
+	void CountPickResult();
 	
 protected:
 	//2pick

@@ -248,7 +248,27 @@ bool DeckManager::LoadDeck(const wchar_t* file) {
 	int cardlist[128];
 	bool is_side = false;
 	char linebuf[256];
+	int win_count = 0;
+	int lose_count = 0;
 	while(fgets(linebuf, 256, fp) && ct < 128) {
+		if(linebuf[0] == '&') {
+			win_count++;
+			if(win_count >= 5) {
+				fclose(fp);
+				DeleteDeck(current_deck, file);
+				return false;
+			}
+			continue;
+		}
+		if(linebuf[0] == '$') {
+			lose_count++;
+			if(lose_count >= 3) {
+				fclose(fp);
+				DeleteDeck(current_deck, file);
+				return false;
+			}
+			continue;
+		}
 		if(linebuf[0] == '!') {
 			is_side = true;
 			continue;
@@ -264,7 +284,15 @@ bool DeckManager::LoadDeck(const wchar_t* file) {
 		else mainc++;
 	}
 	fclose(fp);
-	LoadDeck(current_deck, cardlist, mainc, sidec);
+	if(LoadDeck(current_deck, cardlist, mainc, sidec) == 0) {
+	/*
+		FILE* fp_a = OpenDeckFile(localfile, "a");
+		if(fp_a) {
+			fprintf(fp_a, "&\n");
+			fclose(fp_a);
+		}
+	*/
+	}
 	return true;
 }
 bool DeckManager::SaveDeck(Deck& deck, const wchar_t* name) {
@@ -297,5 +325,25 @@ bool DeckManager::DeleteDeck(Deck& deck, const wchar_t* name) {
 	int result = unlink(filefn);
 	return result == 0;
 #endif
+}
+bool DeckManager::AddWinMark(Deck& deck, const wchar_t* name) {
+	wchar_t file[64];
+	myswprintf(file, L"./deck/%ls.ydk", name);
+	FILE* fp = OpenDeckFile(file, "a");
+	if(!fp)
+		return false;
+	fprintf(fp, "&\n");
+	fclose(fp);
+	return true;
+}
+bool DeckManager::AddLoseMark(Deck& deck, const wchar_t* name) {
+	wchar_t file[64];
+	myswprintf(file, L"./deck/%ls.ydk", name);
+	FILE* fp = OpenDeckFile(file, "a");
+	if(!fp)
+		return false;
+	fprintf(fp, "$\n");
+	fclose(fp);
+	return true;
 }
 }
