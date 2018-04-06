@@ -1791,6 +1791,7 @@ void SingleDuel::EndDuel() {
 	memcpy(pbuf, &last_replay.pheader, sizeof(ReplayHeader));
 	pbuf += sizeof(ReplayHeader);
 	memcpy(pbuf, last_replay.comp_data, last_replay.comp_size);
+/*
 	NetServer::SendBufferToPlayer(players[0], STOC_REPLAY, replaybuf, sizeof(ReplayHeader) + last_replay.comp_size);
 	NetServer::ReSendToPlayer(players[1]);
 #ifdef YGOPRO_SERVER_MODE
@@ -1803,6 +1804,7 @@ void SingleDuel::EndDuel() {
 	for(auto oit = observers.begin(); oit != observers.end(); ++oit)
 		NetServer::ReSendToPlayer(*oit);
 #endif //YGOPRO_SERVER_MODE
+*/
 	end_duel(pduel);
 	pduel = 0;
 }
