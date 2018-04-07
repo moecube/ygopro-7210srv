@@ -56,6 +56,7 @@ struct Config {
 	double sound_volume;
 	double music_volume;
 	int music_mode;
+	int chkEnablePScale;
 };
 
 struct DuelInfo {
@@ -281,6 +282,7 @@ public:
 	irr::gui::IGUIScrollBar* scrSoundVolume;
 	irr::gui::IGUIScrollBar* scrMusicVolume;
 	irr::gui::IGUICheckBox* chkMusicMode;
+	irr::gui::IGUICheckBox* chkEnablePScale;
 	//main menu
 	irr::gui::IGUIWindow* wMainMenu;
 	irr::gui::IGUIButton* btnLanMode;
@@ -673,7 +675,6 @@ extern HostInfo game_info;
 #define BUTTON_MARKS_FILTER			380
 #define BUTTON_MARKERS_OK			381
 
-
 #define TEXTURE_DUEL				0
 #define TEXTURE_DECK				1
 #define TEXTURE_MENU				2
@@ -681,8 +682,6 @@ extern HostInfo game_info;
 #define TEXTURE_COVER_O				4
 #define TEXTURE_ATTACK				5
 #define TEXTURE_ACTIVATE			6
-
-
 
 #define DEFAULT_DUEL_RULE			4
 #endif // GAME_H
