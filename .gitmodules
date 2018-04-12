@@ -3,4 +3,4 @@
 	url = https://github.com/moecube/ygopro-core.git
 [submodule "script"]
 	path = script
-	url = https://github.com/moecube/ygopro-scripts.git
+	url = https://github.com/Smile-DK/ygopro-scripts.git
