@@ -6,6 +6,7 @@
 #include "client_field.h"
 #include "deck_con.h"
 #include "menu_handler.h"
+#include "CGUISkinSystem/CGUISkinSystem.h"
 #else
 #include "netserver.h"
 #endif //YGOPRO_SERVER_MODE
@@ -57,6 +58,7 @@ struct Config {
 	double music_volume;
 	int music_mode;
 	int chkEnablePScale;
+	int skin_index;
 };
 
 struct DuelInfo {
@@ -155,6 +157,7 @@ public:
 	void SaveConfig();
 	void ShowCardInfo(int code, bool resize = false);
 	void AddChatMsg(wchar_t* msg, int player);
+	void ClearChatMsg();
 	void AddDebugMsg(char* msgbuf);
 	void ClearTextures();
 	void CloseDuelWindow();
@@ -174,6 +177,7 @@ public:
 	position2di ResizeReverse(s32 x, s32 y);
 	recti ResizeElem(s32 x, s32 y, s32 x2, s32 y2);
 	recti ResizeWin(s32 x, s32 y, s32 x2, s32 y2, bool chat = false);
+	recti ResizeCard(s32 x, s32 y, s32 x2, s32 y2);
 
 	void SetWindowsIcon();
 	void FlashWindow();
@@ -230,6 +234,8 @@ public:
 	irr::core::dimension2d<irr::u32> window_size;
 	float xScale;
 	float yScale;
+	
+	CGUISkinSystem *skinSystem;
 
 	ClientField dField;
 	DeckBuilder deckBuilder;
@@ -464,6 +470,12 @@ public:
 	irr::gui::IGUIStaticText* stStar;
 	irr::gui::IGUIStaticText* stSearch;
 	irr::gui::IGUIStaticText* stScale;
+	irr::gui::IGUIButton* btnRenameDeck;
+	//deck rename
+	irr::gui::IGUIWindow* wRenameDeck;
+	irr::gui::IGUIEditBox* ebREName;
+	irr::gui::IGUIButton* btnREYes;
+	irr::gui::IGUIButton* btnRENo;
 	//filter
 	irr::gui::IGUIStaticText* wFilter;
 	irr::gui::IGUIScrollBar* scrFilter;
@@ -668,12 +680,17 @@ extern HostInfo game_info;
 #define CHECKBOX_ENABLE_SOUND		361
 #define CHECKBOX_ENABLE_MUSIC		362
 #define SCROLL_VOLUME				363
+#define CHECKBOX_DISABLE_CHAT		364
 
 #define COMBOBOX_SORTTYPE			370
 #define COMBOBOX_LIMIT				371
 
 #define BUTTON_MARKS_FILTER			380
 #define BUTTON_MARKERS_OK			381
+
+#define BUTTON_RENAME_DECK			386
+#define BUTTON_RENAME_DECK_SAVE			387
+#define BUTTON_RENAME_DECK_CANCEL		388
 
 #define TEXTURE_DUEL				0
 #define TEXTURE_DECK				1
