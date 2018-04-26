@@ -27,7 +27,7 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 
-local special_hanoi_force={[0]={44095762,35595518},[1]={44095762,35595518}}
+local special_elemental_lord={[0]={8192327,13959634,35842855,53027855,59281822,61468779},[1]={8192327,13959634,35842855,53027855,59281822,61468779}}
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
@@ -185,15 +185,17 @@ function Auxiliary.StartPick(e)
 		local ex_list=nil
 		local ex_count=nil
 		if i==1 then
-			list=main_nonadv
-			count=2
-			ex_list=main_plain
-			ex_count=2
-		elseif i<4 then
+			list=main_plain
+			count=3
+			ex_list=special_elemental_lord
+			ex_count=1
+		elseif i==2 then
 			list=main_plain
 			count=3
 			ex_list=main_adv
 			ex_count=1
+		elseif i==3 then
+			list=main_plain
 		elseif i==4 then
 			list=main_spell
 		elseif i==5 then
@@ -203,13 +205,6 @@ function Auxiliary.StartPick(e)
 			Auxiliary.SinglePick(p,list,count,ex_list,ex_count,true)
 		end
 	end
-	--for p=0,1 do
-	--	if Duel.IsPlayerNeedToPickDeck(p) then
-	--		Duel.ResetTimeLimit(p,70)
-	--		local cg=Duel.GetFieldGroup(p,LOCATION_DECK,0)
-	--		Duel.ConfirmCards(p,cg)
-	--	end
-	--end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
@@ -230,10 +225,6 @@ function Auxiliary.StartPick(e)
 				Auxiliary.SinglePick(p,extra,2,nil,nil,false,false,extra_fixed)
 			end
 		end
-	end
-	
-	for p=0,1 do
-		Auxiliary.SinglePick(p,special_hanoi_force,1,nil,nil,true)
 	end
 	
 	Auxiliary.SaveDeck()
