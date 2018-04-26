@@ -267,7 +267,7 @@ function Auxiliary.LordSpsummonCondition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
 	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and	Duel.IsExistingMatchingCard(Auxiliary.LordSpsummonFilter,tp,LOCATION_GRAVE,0,1,nil,tp)
+		and Duel.IsExistingMatchingCard(Auxiliary.LordSpsummonFilter,tp,LOCATION_GRAVE,0,1,nil,tp)
 end
 function Auxiliary.LoadLordRule()
 	local e1=Effect.GlobalEffect()
