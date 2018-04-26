@@ -27,7 +27,7 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 
-local special_element_lords={[0]={44095762,35595518},[1]={44095762,35595518}}
+local special_elemental_lord={[0]={8192327,13959634,35842855,53027855,59281822,61468779},[1]={8192327,13959634,35842855,53027855,59281822,61468779}}
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
@@ -187,7 +187,7 @@ function Auxiliary.StartPick(e)
 		if i==1 then
 			list=main_plain
 			count=3
-			ex_list=special_element_lords
+			ex_list=special_elemental_lord
 			ex_count=1
 		elseif i==2 then
 			list=main_plain
