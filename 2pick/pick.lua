@@ -4,6 +4,8 @@ io=require("io")
 local main={[0]={},[1]={}}
 local extra={[0]={},[1]={}}
 
+local main_nonadv={[0]={},[1]={}}
+
 local main_monster={[0]={},[1]={}}
 local main_spell={[0]={},[1]={}}
 local main_trap={[0]={},[1]={}}
@@ -70,11 +72,14 @@ function Auxiliary.LoadDB(p,pool)
 				if lv>4 then
 					table.insert(main_adv[p],code)
 				else
-					table.insert(main_plain[p],code)				
+					table.insert(main_plain[p],code)
+					table.insert(main_nonadv[p],code)
 				end
 			elseif (cat & TYPE_SPELL)>0 then
+				table.insert(main_nonadv[p],code)
 				table.insert(main_spell[p],code)
 			elseif (cat & TYPE_TRAP)>0 then
+				table.insert(main_nonadv[p],code)
 				table.insert(main_trap[p],code)
 			end
 			table.insert(main[p],code)
@@ -149,11 +154,9 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 		end
 		Duel.SendtoDeck(g,nil,0,REASON_RULE)
 	end
-	local sg=g1:Clone()
-	sg:Merge(g2)
 	Duel.ResetTimeLimit(p,70)
 	Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
-	local sc=sg:Select(p,1,1,nil):GetFirst()
+	local sc=g1:SelectUnselect(g2,p,false,false,#g1,#g2)
 	local tg=g1:IsContains(sc) and g1 or g2
 	local rg=g1:IsContains(sc) and g2 or g1
 	if sc:IsLocation(LOCATION_DECK) then
@@ -182,6 +185,7 @@ function Auxiliary.StartPick(e)
 		local ex_list=nil
 		local ex_count=nil
 		if i==1 then
+			list=main_nonadv
 			count=2
 			ex_list=main_plain
 			ex_count=2
