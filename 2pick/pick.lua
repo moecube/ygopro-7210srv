@@ -248,5 +248,42 @@ function Auxiliary.Load2PickRule()
 	e1:SetCode(EVENT_ADJUST)
 	e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
 	e1:SetOperation(Auxiliary.StartPick)
-	Duel.RegisterEffect(e1,0)
+	Duel.RegisterEffect(e1,0)、
+
+	--elem lord specials
+	Auxiliary.LoadLordRule()
+end
+
+
+
+--functions for elem lord specials
+function Auxiliary.LordSpsummonFilter(c,tp)
+	return Duel.IsExistingMatchingCard(Auxiliary.LordSpsummonAttributeCheck,tp,LOCATION_GRAVE,0,2,c,c:GetAttribute())
+end
+function Auxiliary.LordSpsummonAttributeCheck(c,att)
+	return c:IsAttribute(att)
+end
+function Auxiliary.LordSpsummonCondition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and	Duel.IsExistingMatchingCard(Auxiliary.LordSpsummonFilter,tp,LOCATION_GRAVE,0,1,nil,tp)
+end
+function Auxiliary.LoadLordRule()
+	local e1=Effect.GlobalEffect()
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_SPSUMMON_PROC)
+	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
+	e1:SetRange(LOCATION_HAND)
+	e1:SetCondition(Auxiliary.LordSpsummonCondition)
+	local e2=Effect.GlobalEffect()
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e2:SetTargetRange(LOCATION_HAND,LOCATION_HAND)
+	e2:SetTarget(Auxiliary.LordGrantTarget)
+	e2:SetLabelObject(e1)
+	Duel.RegisterEffect(e2,0)
+end
+function Auxiliary.LordGrantTarget(e,c)
+	return c:IsOriginalSetCard(0x113)
 end
