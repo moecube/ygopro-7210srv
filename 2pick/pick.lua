@@ -285,5 +285,5 @@ function Auxiliary.LoadLordRule()
 	Duel.RegisterEffect(e2,0)
 end
 function Auxiliary.LordGrantTarget(e,c)
-	return c:IsOriginalSetCard(0x113)
+	return c:IsOriginalSetCard(0x113) and c:IsType(TYPE_MONSTER)
 end
