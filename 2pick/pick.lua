@@ -154,7 +154,7 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 		end
 		Duel.SendtoDeck(g,nil,0,REASON_RULE)
 	end
-	Duel.ResetTimeLimit(p,70)
+	Duel.ResetTimeLimit(p,90)
 	Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
 	local sc=g1:SelectUnselect(g2,p,false,false,#g1,#g2)
 	local tg=g1:IsContains(sc) and g1 or g2
