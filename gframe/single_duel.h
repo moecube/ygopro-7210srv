@@ -28,6 +28,9 @@ public:
 	virtual void GetResponse(DuelPlayer* dp, void* pdata, unsigned int len);
 	virtual void TimeConfirm(DuelPlayer* dp);
 	virtual void EndDuel();
+#ifdef YGOPRO_SERVER_MODE
+	virtual void TestCard(int code);
+#endif
 	
 	void DuelEndProc();
 	void WaitforResponse(int playerid);
@@ -42,6 +45,7 @@ public:
 	static void SingleTimer(evutil_socket_t fd, short events, void* arg);
 	//2pick
 	void SwapPickDeck();
+	
 	
 protected:
 	//2pick

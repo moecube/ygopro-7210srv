@@ -9,6 +9,9 @@ addons:
     packages:
     - libevent-dev
     - libsqlite3-dev
+env:
+- DATABASE_FILE=cards.cdb
+
 before_install:
 - git submodule update --init --recursive
 - wget -O - https://github.com/premake/premake-core/releases/download/v5.0.0-alpha12/premake-5.0.0-alpha12-linux.tar.gz | tar zfx -
@@ -17,3 +20,11 @@ script:
 - ./premake5 gmake
 - cd build
 - make config=release
+
+- cd ..
+- mv -f ./bin/release/ygopro .
+- strip ygopro
+- mkdir replay
+
+- echo "select id from datas;" | sqlite3 $DATABASE_FILE | xargs -I {} ./ygopro {} 2>&1 | tee ./redtext.txt
+- bash -c "exit $(cat ./redtext.txt | wc -l)"

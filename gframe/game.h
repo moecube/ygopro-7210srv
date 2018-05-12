@@ -120,9 +120,12 @@ public:
 	bool Initialize();
 #ifdef YGOPRO_SERVER_MODE
 	void MainServerLoop();
+	void MainTestLoop(int code);
 	void LoadExpansionDB();
 	void LoadBetaDB();
 	void AddDebugMsg(char* msgbuf);
+	bool MakeDirectory(const std::string folder);
+	void initUtils();
 #else
 	void MainLoop();
 	void RefreshTimeDisplay();
@@ -159,6 +162,8 @@ public:
 	void AddChatMsg(wchar_t* msg, int player);
 	void ClearChatMsg();
 	void AddDebugMsg(char* msgbuf);
+	bool MakeDirectory(const std::string folder);
+	void initUtils();
 	void ClearTextures();
 	void CloseDuelWindow();
 
@@ -186,6 +191,7 @@ public:
 
 	void SetWindowsIcon();
 	void FlashWindow();
+	void takeScreenshot();
 	void SetCursor(ECURSOR_ICON icon);
 
 	Mutex gMutex;
