@@ -27,7 +27,7 @@
 #include <io.h>
 #endif
 
-unsigned short PRO_VERSION = 0x1343;
+unsigned short PRO_VERSION = 0x1344;
 
 namespace ygo {
 
@@ -1757,6 +1757,9 @@ void Game::CloseDuelWindow() {
 	wReplaySave->setVisible(false);
 	stHintMsg->setVisible(false);
 	btnSideOK->setVisible(false);
+	btnSideShuffle->setVisible(false);
+	btnSideSort->setVisible(false);
+	btnSideReload->setVisible(false);
 	btnLeaveGame->setVisible(false);
 	btnSpectatorSwap->setVisible(false);
 	btnChainIgnore->setVisible(false);
