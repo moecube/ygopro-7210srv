@@ -201,9 +201,6 @@ function Auxiliary.StartPick(e)
 			Auxiliary.SinglePick(p,list,count,ex_list,ex_count,true)
 		end
 	end
-	for p=0,1 do
-		Auxiliary.SinglePick(p,special_timelord,1,nil,nil,false)
-	end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
@@ -224,6 +221,9 @@ function Auxiliary.StartPick(e)
 				Auxiliary.SinglePick(p,extra,2,nil,nil,false,false,extra_fixed)
 			end
 		end
+	end
+	for p=0,1 do
+		Auxiliary.SinglePick(p,special_timelord,1,nil,nil,false)
 	end
 	
 	Auxiliary.SaveDeck()
