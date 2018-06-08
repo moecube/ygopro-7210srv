@@ -248,7 +248,4 @@ function Auxiliary.Load2PickRule()
 	e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
 	e1:SetOperation(Auxiliary.StartPick)
 	Duel.RegisterEffect(e1,0)
-
-	--elem lord specials
-	Auxiliary.LoadLordRule()
 end
