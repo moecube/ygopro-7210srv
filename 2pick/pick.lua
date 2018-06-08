@@ -27,7 +27,8 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 
-local special_elemental_lord={[0]={8192327,13959634,35842855,53027855,59281822,61468779},[1]={8192327,13959634,35842855,53027855,59281822,61468779}}
+local special_timelord={[0]={74530899,92435533,28929131,65314286,91712985,7733560,34137269,60222213,6616912,33015627},[1]={74530899,92435533,28929131,65314286,91712985,7733560,34137269,60222213,6616912,33015627}}
+
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
@@ -184,12 +185,7 @@ function Auxiliary.StartPick(e)
 		local count=4
 		local ex_list=nil
 		local ex_count=nil
-		if i==1 then
-			list=main_plain
-			count=3
-			ex_list=special_elemental_lord
-			ex_count=1
-		elseif i==2 then
+		if i==1 or i==2 then
 			list=main_plain
 			count=3
 			ex_list=main_adv
@@ -204,6 +200,9 @@ function Auxiliary.StartPick(e)
 		for p=0,1 do
 			Auxiliary.SinglePick(p,list,count,ex_list,ex_count,true)
 		end
+	end
+	for p=0,1 do
+		Auxiliary.SinglePick(p,special_timelord,1,nil,nil,false)
 	end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
@@ -252,38 +251,4 @@ function Auxiliary.Load2PickRule()
 
 	--elem lord specials
 	Auxiliary.LoadLordRule()
-end
-
-
-
---functions for elem lord specials
-function Auxiliary.LordSpsummonFilter(c,tp)
-	return Duel.IsExistingMatchingCard(Auxiliary.LordSpsummonAttributeCheck,tp,LOCATION_GRAVE,0,2,c,c:GetAttribute())
-end
-function Auxiliary.LordSpsummonAttributeCheck(c,att)
-	return c:IsAttribute(att)
-end
-function Auxiliary.LordSpsummonCondition(e,c)
-	if c==nil then return true end
-	local tp=c:GetControler()
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(Auxiliary.LordSpsummonFilter,tp,LOCATION_GRAVE,0,1,nil,tp)
-end
-function Auxiliary.LoadLordRule()
-	local e1=Effect.GlobalEffect()
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_SPSUMMON_PROC)
-	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
-	e1:SetRange(LOCATION_HAND)
-	e1:SetCondition(Auxiliary.LordSpsummonCondition)
-	local e2=Effect.GlobalEffect()
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
-	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
-	e2:SetTargetRange(LOCATION_HAND,LOCATION_HAND)
-	e2:SetTarget(Auxiliary.LordGrantTarget)
-	e2:SetLabelObject(e1)
-	Duel.RegisterEffect(e2,0)
-end
-function Auxiliary.LordGrantTarget(e,c)
-	return c:IsOriginalSetCard(0x113) and c:IsType(TYPE_MONSTER)
 end
