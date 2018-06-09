@@ -28,6 +28,7 @@ local xyz_adv={[0]={},[1]={}}
 local extra_fixed={62709239,95169481}
 
 local special_timelord={[0]={74530899,92435533,28929131,65314286,91712985,7733560,34137269,60222213,6616912,33015627},[1]={74530899,92435533,28929131,65314286,91712985,7733560,34137269,60222213,6616912,33015627}}
+local timelord_maiden={27107590}
 
 
 function Auxiliary.SplitData(inputstr)
@@ -223,7 +224,7 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	for p=0,1 do
-		Auxiliary.SinglePick(p,special_timelord,1,nil,nil,false)
+		Auxiliary.SinglePick(p,special_timelord,1,nil,nil,false,false,timelord_maiden)
 	end
 	
 	Auxiliary.SaveDeck()
