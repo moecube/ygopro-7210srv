@@ -39,14 +39,10 @@ function Auxiliary.SplitData(inputstr)
 	return t
 end
 function Auxiliary.LoadDB(p,pool)
-	local file=nil
-	if _WIN32 then
-		file=io.popen("bash echo \"select * from datas;\" | sqlite3 "..pool)
-	else
-		file=io.popen("echo \"select * from datas;\" | sqlite3 "..pool)
-	end
+	local file=io.popen("sqlite3 "..pool.." -cmd \"select * from datas;\"")
 	for line in file:lines() do
 		local data=Auxiliary.SplitData(line)
+		if #data<2 then break end
 		local code=data[1]
 		local ot=data[2]
 		local cat=data[5]
