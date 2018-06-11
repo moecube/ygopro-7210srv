@@ -39,7 +39,7 @@ function Auxiliary.SplitData(inputstr)
 	return t
 end
 function Auxiliary.LoadDB(p,pool)
-	local file=io.popen("sqlite3 "..pool.." -cmd \"select * from datas;\" < /dev/null")
+	local file=io.popen("sqlite3 "..pool.." -cmd \"select * from datas;\" < lflist.conf")
 	for line in file:lines() do
 		local data=Auxiliary.SplitData(line)
 		if #data<2 then break end
