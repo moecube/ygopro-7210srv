@@ -27,10 +27,6 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 
-local special_timelord={[0]={74530899,92435533,28929131,65314286,91712985,7733560,34137269,60222213,6616912,33015627},[1]={74530899,92435533,28929131,65314286,91712985,7733560,34137269,60222213,6616912,33015627}}
-local timelord_maiden={27107590}
-
-
 function Auxiliary.SplitData(inputstr)
 	local t={}
 	for str in string.gmatch(inputstr,"([^|]+)") do
@@ -219,8 +215,16 @@ function Auxiliary.StartPick(e)
 			end
 		end
 	end
+	
+	-- World Cup
 	for p=0,1 do
-		Auxiliary.SinglePick(p,special_timelord,1,nil,nil,false,false,timelord_maiden)
+		Duel.Hint(HINT_CARD,p,72332074)
+		local ng=Group.CreateGroup()
+		local card1=Duel.CreateToken(p,72332074)
+		local card2=Duel.CreateToken(p,72332074)
+		ng:AddCard(card1)
+		ng:AddCard(card2)
+		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
 	end
 	
 	Auxiliary.SaveDeck()
@@ -245,4 +249,51 @@ function Auxiliary.Load2PickRule()
 	e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
 	e1:SetOperation(Auxiliary.StartPick)
 	Duel.RegisterEffect(e1,0)
+
+	--Alphan Spike Specials
+	Auxiliary.LoadAlphanRule()
+end
+
+--functions for Alphan Spike Specials
+function Auxiliary.AlphanTarget(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,1,nil)
+		and Duel.GetFieldGroupCount(tp,0,LOCATION_EXTRA)>0 and Duel.IsPlayerCanSpecialSummon(1-tp) end
+	local g=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,nil)
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,g:GetCount(),0,0)
+end
+function Auxiliary.AlphanSPfilter(c,e,tp)
+	return c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
+end
+function Auxiliary.AlphanActivate(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,nil)
+	if Duel.SendtoDeck(g,nil,2,REASON_EFFECT)~=0
+		and Duel.GetLocationCount(1-tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(Auxiliary.AlphanSPfilter,1-tp,LOCATION_EXTRA,0,1,nil,e,1-tp) then
+		Duel.BreakEffect()
+		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_SPSUMMON)
+		local g=Duel.SelectMatchingCard(1-tp,Auxiliary.AlphanSPfilter,1-tp,LOCATION_EXTRA,0,1,1,nil,e,1-tp)
+		local tc=g:GetFirst()
+		if tc then
+			Duel.SpecialSummon(tc,0,1-tp,1-tp,true,false,POS_FACEUP)
+		end
+	end
+end
+
+function Auxiliary.LoadAlphanRule()
+	local e1=Effect.GlobalEffect()
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TODECK)
+	e1:SetType(EFFECT_TYPE_ACTIVATE)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetTarget(Auxiliary.AlphanTarget)
+	e1:SetOperation(Auxiliary.AlphanActivate)
+	local e2=Effect.GlobalEffect()
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e2:SetTargetRange(LOCATION_HAND+LOCATION_SZONE,LOCATION_HAND+LOCATION_SZONE)
+	e2:SetTarget(Auxiliary.IsAlphanSpike)
+	e2:SetLabelObject(e1)
+	Duel.RegisterEffect(e2,0)
+end
+function Auxiliary.IsAlphanSpike(e,c)
+	return c:IsCode(72332074)
 end
