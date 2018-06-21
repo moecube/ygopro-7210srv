@@ -218,13 +218,15 @@ function Auxiliary.StartPick(e)
 	
 	-- World Cup
 	for p=0,1 do
-		Duel.Hint(HINT_CARD,p,72332074)
-		local ng=Group.CreateGroup()
-		local card1=Duel.CreateToken(p,72332074)
-		local card2=Duel.CreateToken(p,72332074)
-		ng:AddCard(card1)
-		ng:AddCard(card2)
-		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+		if Duel.IsPlayerNeedToPickDeck(p) then
+			Duel.Hint(HINT_CARD,p,72332074)
+			local ng=Group.CreateGroup()
+			local card1=Duel.CreateToken(p,72332074)
+			local card2=Duel.CreateToken(p,72332074)
+			ng:AddCard(card1)
+			ng:AddCard(card2)
+			Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+		end
 	end
 	
 	Auxiliary.SaveDeck()
