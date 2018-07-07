@@ -144,6 +144,7 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 			for _,code in ipairs(fixed) do
 				local card=Duel.CreateToken(p,code)
 				g:AddCard(card)
+				ag:AddCard(card)
 			end
 		end
 		Duel.SendtoDeck(g,nil,0,REASON_RULE)
@@ -152,7 +153,7 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 	
 	local tg=Group.CreateGroup()
 	local rg=ag
-	while 1<2 do
+	while true do
 		local finish=tg:GetCount()>0
 		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
 		local sc=rg:SelectUnselect(tg,p,finish,false,#g1,#g2)
