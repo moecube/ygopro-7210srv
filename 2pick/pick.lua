@@ -150,10 +150,10 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 	end
 	Duel.ResetTimeLimit(p,90)
 	
-	local sg=nil
+	local sg=Group.CreateGroup()
 	local rg=ag
 	while 1<2 do
-		local finish=not (sg==nil)
+		local finish=sg:GetCount() > 0
 		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
 		local sc=rg:SelectUnselect(sg,p,finish,false,#g1,#g2)
 		if not sc then break end
