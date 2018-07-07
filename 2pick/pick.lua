@@ -149,11 +149,19 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 		Duel.SendtoDeck(g,nil,0,REASON_RULE)
 	end
 	Duel.ResetTimeLimit(p,90)
-	Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
-	local sc=g1:SelectUnselect(g2,p,false,false,#g1,#g2)
-	local tg=g1:IsContains(sc) and g1 or g2
-	local rg=g1:IsContains(sc) and g2 or g1
-	if sc:IsLocation(LOCATION_DECK) then
+	
+	local sg=nil
+	local rg=ag
+	while 1<2 do
+		local finish=not (sg==nil)
+		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
+		local sc=rg:SelectUnselect(sg,p,finish,false,#g1,#g2)
+		if not sc then break end
+		local tg=g1:IsContains(sc) and g1 or g2
+		local rg=g1:IsContains(sc) and g2 or g1
+	end
+	
+	if tg:GetFirst():IsLocation(LOCATION_DECK) then
 		Duel.ConfirmCards(p,tg)
 	end
 	Duel.Exile(rg,REASON_RULE)
