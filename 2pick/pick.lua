@@ -153,12 +153,12 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
 	local tg=Group.CreateGroup()
 	local rg=ag
 	while 1<2 do
-		local finish=tg:GetCount() > 0
+		local finish=tg:GetCount()>0
 		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
 		local sc=rg:SelectUnselect(tg,p,finish,false,#g1,#g2)
 		if not sc then break end
 		tg=g1:IsContains(sc) and g1 or g2
-		g=g1:IsContains(sc) and g2 or g1
+		rg=g1:IsContains(sc) and g2 or g1
 	end
 	
 	if tg:GetFirst():IsLocation(LOCATION_DECK) then
