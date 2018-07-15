@@ -225,18 +225,18 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	
-	-- World Cup
-	for p=0,1 do
-		if Duel.IsPlayerNeedToPickDeck(p) then
-			Duel.Hint(HINT_CARD,p,72332074)
-			local ng=Group.CreateGroup()
-			local card1=Duel.CreateToken(p,72332074)
-			local card2=Duel.CreateToken(p,72332074)
-			ng:AddCard(card1)
-			ng:AddCard(card2)
-			Duel.SendtoDeck(ng,nil,0,REASON_RULE)
-		end
-	end
+	-- -- World Cup / Additional Picks
+	-- for p=0,1 do
+	-- 	if Duel.IsPlayerNeedToPickDeck(p) then
+	-- 		Duel.Hint(HINT_CARD,p,72332074)
+	-- 		local ng=Group.CreateGroup()
+	-- 		local card1=Duel.CreateToken(p,72332074)
+	-- 		local card2=Duel.CreateToken(p,72332074)
+	-- 		ng:AddCard(card1)
+	-- 		ng:AddCard(card2)
+	-- 		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+	-- 	end
+	-- end
 	
 	Auxiliary.SaveDeck()
 	for p=0,1 do
@@ -261,50 +261,61 @@ function Auxiliary.Load2PickRule()
 	e1:SetOperation(Auxiliary.StartPick)
 	Duel.RegisterEffect(e1,0)
 
-	--Alphan Spike Specials
-	Auxiliary.LoadAlphanRule()
+	--Skill DestinyDraw Specials
+	Auxiliary.Load_Skill_DestinyDraw_Rule()
 end
 
---functions for Alphan Spike Specials
-function Auxiliary.AlphanTarget(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,1,nil)
-		and Duel.GetFieldGroupCount(tp,0,LOCATION_EXTRA)>0 and Duel.IsPlayerCanSpecialSummon(1-tp) end
-	local g=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,nil)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,g:GetCount(),0,0)
+
+function Auxiliary.Load_Skill_DestinyDraw_Rule()
+	local e1=Effect.GlobalEffect()
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetTargetRange(1,1)
+	e1:SetCode(PHASE_DRAW+EVENT_PHASE_START)
+	e1:SetCondition(Auxiliary.Skill_DestinyDraw_Condition)
+	e1:SetOperation(Auxiliary.Skill_DestinyDraw_Operation)
+	Duel.RegisterEffect(e1,0)
 end
-function Auxiliary.AlphanSPfilter(c,e,tp)
-	return c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
+
+function Auxiliary.Skill_DestinyDraw_SearchFilter(c)
+	return c:IsAbleToHand()
 end
-function Auxiliary.AlphanActivate(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,nil)
-	if Duel.SendtoDeck(g,nil,2,REASON_EFFECT)~=0
-		and Duel.GetLocationCount(1-tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(Auxiliary.AlphanSPfilter,1-tp,LOCATION_EXTRA,0,1,nil,e,1-tp) then
-		Duel.BreakEffect()
-		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_SPSUMMON)
-		local g=Duel.SelectMatchingCard(1-tp,Auxiliary.AlphanSPfilter,1-tp,LOCATION_EXTRA,0,1,1,nil,e,1-tp)
-		local tc=g:GetFirst()
-		if tc then
-			Duel.SpecialSummon(tc,0,1-tp,1-tp,true,false,POS_FACEUP)
+
+function Auxiliary.Skill_DestinyDraw_Condition(e,tp,eg,ep,ev,re,r,rp)
+	local tp=Duel.GetTurnPlayer()
+	return (Duel.GetLP(1-tp))-(Duel.GetLP(tp))>2999
+		and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>4 
+		and Duel.GetDrawCount(tp)>0
+		and Duel.IsExistingMatchingCard(Auxiliary.Skill_DestinyDraw_SearchFilter,tp,LOCATION_DECK,0,1,nil)
+end
+
+function Auxiliary.Skill_DestinyDraw_Operation(e,tp,eg,ep,ev,re,r,rp)
+	local tp=Duel.GetTurnPlayer()
+	local dt=Duel.GetDrawCount(tp)
+	if dt~=0 then
+		_replace_count=0
+		_replace_max=dt
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e1:SetCode(EFFECT_DRAW_COUNT)
+		e1:SetTargetRange(1,0)
+		e1:SetReset(RESET_PHASE+PHASE_DRAW)
+		e1:SetValue(0)
+		Duel.RegisterEffect(e1,tp)
+		Duel.ConfirmDecktop(tp,5)
+		local g=Duel.GetDecktopGroup(tp,5)
+		if g:GetCount()>0 then
+			Duel.Hint(HINT_SELECTMSG,p,HINTMSG_ATOHAND)
+			local sg=g:Select(tp,1,1,nil)
+				if sg:GetFirst():IsAbleToHand() then
+				Duel.SendtoHand(sg,nil,REASON_EFFECT)
+				Duel.ConfirmCards(1-tp,sg)
+				Duel.ShuffleHand(tp)
+			else
+				Duel.SendtoGrave(sg,REASON_RULE)
+			end
+			Duel.ShuffleDeck(tp)
 		end
 	end
-end
-
-function Auxiliary.LoadAlphanRule()
-	local e1=Effect.GlobalEffect()
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TODECK)
-	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetTarget(Auxiliary.AlphanTarget)
-	e1:SetOperation(Auxiliary.AlphanActivate)
-	local e2=Effect.GlobalEffect()
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
-	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_SET_AVAILABLE)
-	e2:SetTargetRange(LOCATION_HAND+LOCATION_SZONE,LOCATION_HAND+LOCATION_SZONE)
-	e2:SetTarget(Auxiliary.IsAlphanSpike)
-	e2:SetLabelObject(e1)
-	Duel.RegisterEffect(e2,0)
-end
-function Auxiliary.IsAlphanSpike(e,c)
-	return c:IsCode(72332074)
 end
