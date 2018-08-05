@@ -194,6 +194,10 @@ function Auxiliary.StartPick(e)
 			ex_count=1
 		elseif i==3 then
 			list=main_plain
+			--Adding New Cards
+			count=3
+			ex_list=main_new
+			ex_count=1
 		elseif i==4 then
 			list=main_spell
 		elseif i==5 then
@@ -261,35 +265,30 @@ function Auxiliary.Load2PickRule()
 	e1:SetOperation(Auxiliary.StartPick)
 	Duel.RegisterEffect(e1,0)
 
-	--Skill DestinyDraw Specials
-	Auxiliary.Load_Skill_DestinyDraw_Rule()
+	--Skill DrawSense Specials
+	Auxiliary.Load_Skill_DrawSense_Rule()
 end
 
-
-function Auxiliary.Load_Skill_DestinyDraw_Rule()
+function Auxiliary.Load_Skill_DrawSense_Rule()
 	local e1=Effect.GlobalEffect()
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e1:SetTargetRange(1,1)
 	e1:SetCode(PHASE_DRAW+EVENT_PHASE_START)
-	e1:SetCondition(Auxiliary.Skill_DestinyDraw_Condition)
-	e1:SetOperation(Auxiliary.Skill_DestinyDraw_Operation)
+	e1:SetCondition(Auxiliary.Skill_DrawSense_Condition)
+	e1:SetOperation(Auxiliary.Skill_DrawSense_Operation)
 	Duel.RegisterEffect(e1,0)
 end
 
-function Auxiliary.Skill_DestinyDraw_SearchFilter(c)
-	return c:IsAbleToHand()
-end
-
-function Auxiliary.Skill_DestinyDraw_Condition(e,tp,eg,ep,ev,re,r,rp)
+function Auxiliary.Skill_DrawSense_Condition(e,tp,eg,ep,ev,re,r,rp)
 	local tp=Duel.GetTurnPlayer()
-	return (Duel.GetLP(1-tp))-(Duel.GetLP(tp))>2999
-		and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>4 
+	return (Duel.GetLP(1-tp))-(Duel.GetLP(tp))>1999
+		and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>1
 		and Duel.GetDrawCount(tp)>0
-		and Duel.IsExistingMatchingCard(Auxiliary.Skill_DestinyDraw_SearchFilter,tp,LOCATION_DECK,0,1,nil)
+		--and Duel.IsExistingMatchingCard(Auxiliary.Skill_DestinyDraw_SearchFilter,tp,LOCATION_DECK,0,1,nil)
 end
 
-function Auxiliary.Skill_DestinyDraw_Operation(e,tp,eg,ep,ev,re,r,rp)
+function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 	local tp=Duel.GetTurnPlayer()
 	local dt=Duel.GetDrawCount(tp)
 	if dt~=0 then
@@ -303,19 +302,98 @@ function Auxiliary.Skill_DestinyDraw_Operation(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetReset(RESET_PHASE+PHASE_DRAW)
 		e1:SetValue(0)
 		Duel.RegisterEffect(e1,tp)
-		Duel.ConfirmDecktop(tp,5)
-		local g=Duel.GetDecktopGroup(tp,5)
-		if g:GetCount()>0 then
-			Duel.Hint(HINT_SELECTMSG,p,HINTMSG_ATOHAND)
-			local sg=g:Select(tp,1,1,nil)
-				if sg:GetFirst():IsAbleToHand() then
-				Duel.SendtoHand(sg,nil,REASON_EFFECT)
-				Duel.ConfirmCards(1-tp,sg)
-				Duel.ShuffleHand(tp)
-			else
-				Duel.SendtoGrave(sg,REASON_RULE)
+
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CARDTYPE)
+		local SenseType=(Duel.AnnounceType(tp))
+
+		if (SenseType==0 and Duel.IsExistingMatchingCard(Card.IsType,tp,LOCATION_DECK,0,1,nil,TYPE_MONSTER)) then
+			g=Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_DECK,0,nil,TYPE_MONSTER)
+			local SenseCard=g:RandomSelect(tp,1)
+			local tc=SenseCard:GetFirst()
+			if tc then
+				Duel.ShuffleDeck(tp)
+				Duel.MoveSequence(tc,0)
 			end
+			Duel.Draw(tp,1,REASON_RULE)
+		elseif (SenseType==1 and Duel.IsExistingMatchingCard(Card.IsType,tp,LOCATION_DECK,0,1,nil,TYPE_SPELL)) then
+			g=Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_DECK,0,nil,TYPE_SPELL)
+			local SenseCard=g:RandomSelect(tp,1)
+			local tc=SenseCard:GetFirst()
+			if tc then
+				Duel.ShuffleDeck(tp)
+				Duel.MoveSequence(tc,0)
+			end
+			Duel.Draw(tp,1,REASON_RULE)
+		elseif (SenseType==2 and Duel.IsExistingMatchingCard(Card.IsType,tp,LOCATION_DECK,0,1,nil,TYPE_TRAP)) then
+			g=Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_DECK,0,nil,TYPE_TRAP)
+			local SenseCard=g:RandomSelect(tp,1)
+			local tc=SenseCard:GetFirst()
+			if tc then
+				Duel.ShuffleDeck(tp)
+				Duel.MoveSequence(tc,0)
+			end
+			Duel.Draw(tp,1,REASON_RULE)
+		else 
 			Duel.ShuffleDeck(tp)
+			Duel.Draw(tp,1,REASON_RULE)
 		end
 	end
 end
+
+
+
+
+
+-- function Auxiliary.Load_Skill_DestinyDraw_Rule()
+-- 	local e1=Effect.GlobalEffect()
+-- 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+-- 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+-- 	e1:SetTargetRange(1,1)
+-- 	e1:SetCode(PHASE_DRAW+EVENT_PHASE_START)
+-- 	e1:SetCondition(Auxiliary.Skill_DestinyDraw_Condition)
+-- 	e1:SetOperation(Auxiliary.Skill_DestinyDraw_Operation)
+-- 	Duel.RegisterEffect(e1,0)
+-- end
+
+-- function Auxiliary.Skill_DestinyDraw_SearchFilter(c)
+-- 	return c:IsAbleToHand()
+-- end
+
+-- function Auxiliary.Skill_DestinyDraw_Condition(e,tp,eg,ep,ev,re,r,rp)
+-- 	local tp=Duel.GetTurnPlayer()
+-- 	return (Duel.GetLP(1-tp))-(Duel.GetLP(tp))>2999
+-- 		and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>4 
+-- 		and Duel.GetDrawCount(tp)>0
+-- 		and Duel.IsExistingMatchingCard(Auxiliary.Skill_DestinyDraw_SearchFilter,tp,LOCATION_DECK,0,1,nil)
+-- end
+
+-- function Auxiliary.Skill_DestinyDraw_Operation(e,tp,eg,ep,ev,re,r,rp)
+-- 	local tp=Duel.GetTurnPlayer()
+-- 	local dt=Duel.GetDrawCount(tp)
+-- 	if dt~=0 then
+-- 		_replace_count=0
+-- 		_replace_max=dt
+-- 		local e1=Effect.CreateEffect(e:GetHandler())
+-- 		e1:SetType(EFFECT_TYPE_FIELD)
+-- 		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+-- 		e1:SetCode(EFFECT_DRAW_COUNT)
+-- 		e1:SetTargetRange(1,0)
+-- 		e1:SetReset(RESET_PHASE+PHASE_DRAW)
+-- 		e1:SetValue(0)
+-- 		Duel.RegisterEffect(e1,tp)
+-- 		Duel.ConfirmDecktop(tp,5)
+-- 		local g=Duel.GetDecktopGroup(tp,5)
+-- 		if g:GetCount()>0 then
+-- 			Duel.Hint(HINT_SELECTMSG,p,HINTMSG_ATOHAND)
+-- 			local sg=g:Select(tp,1,1,nil)
+-- 				if sg:GetFirst():IsAbleToHand() then
+-- 				Duel.SendtoHand(sg,nil,REASON_EFFECT)
+-- 				Duel.ConfirmCards(1-tp,sg)
+-- 				Duel.ShuffleHand(tp)
+-- 			else
+-- 				Duel.SendtoGrave(sg,REASON_RULE)
+-- 			end
+-- 			Duel.ShuffleDeck(tp)
+-- 		end
+-- 	end
+-- end
