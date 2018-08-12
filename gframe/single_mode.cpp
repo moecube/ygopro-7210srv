@@ -856,6 +856,11 @@ byte* SingleMode::ScriptReaderEx(const char* script_name, int* slen) {
 	strcat(sname, script_name + 8);//default script name: ./script/c%d.lua
 	byte* buffer = ScriptReader(sname, slen);
 	if(!buffer) {
+		char sname[256] = "./2pick";
+		strcat(sname, script_name + 8);
+		buffer = default_script_reader(sname, slen);
+	}
+	if(!buffer) {
 		char sname[256] = "./expansions";
 		strcat(sname, script_name + 1);
 		buffer = ScriptReader(sname, slen);
