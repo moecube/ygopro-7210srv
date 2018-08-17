@@ -605,8 +605,6 @@ void SingleDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 		NetServer::SendBufferToPlayer(cache_recorder, STOC_GAME_MSG, startbuf, 18);
 	if(replay_recorder)
 		NetServer::SendBufferToPlayer(replay_recorder, STOC_GAME_MSG, startbuf, 18);
-	lp[0] = host_info.start_lp;
-	lp[1] = host_info.start_lp;
 	turn_player = 0;
 	phase = 1;
 #endif
@@ -1504,15 +1502,7 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_DAMAGE: {
-#ifdef YGOPRO_SERVER_MODE
-			int player = BufferIO::ReadInt8(pbuf);
-			int val = BufferIO::ReadInt32(pbuf);
-			lp[player] -= val;
-			if(lp[player] < 0)
-				lp[player] = 0;
-#else
 			pbuf += 5;
-#endif
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1523,13 +1513,7 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_RECOVER: {
-#ifdef YGOPRO_SERVER_MODE
-			int player = BufferIO::ReadInt8(pbuf);
-			int val = BufferIO::ReadInt32(pbuf);
-			lp[player] += val;
-#else
 			pbuf += 5;
-#endif
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1551,13 +1535,7 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_LPUPDATE: {
-#ifdef YGOPRO_SERVER_MODE
-			int player = BufferIO::ReadInt8(pbuf);
-			int val = BufferIO::ReadInt32(pbuf);
-			lp[player] = val;
-#else
 			pbuf += 5;
-#endif
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1601,15 +1579,7 @@ int SingleDuel::Analyze(char* msgbuffer, unsigned int len) {
 			break;
 		}
 		case MSG_PAY_LPCOST: {
-#ifdef YGOPRO_SERVER_MODE
-			int player = BufferIO::ReadInt8(pbuf);
-			int val = BufferIO::ReadInt32(pbuf);
-			lp[player] -= val;
-			if(lp[player] < 0)
-				lp[player] = 0;
-#else
 			pbuf += 5;
-#endif
 			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
 			NetServer::ReSendToPlayer(players[1]);
 			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
@@ -1877,8 +1847,8 @@ void SingleDuel::RequestField(DuelPlayer* dp) {
 	char startbuf[32], *pbuf = startbuf;
 	BufferIO::WriteInt8(pbuf, MSG_START);
 	BufferIO::WriteInt8(pbuf, player);
-	BufferIO::WriteInt32(pbuf, lp[0]);
-	BufferIO::WriteInt32(pbuf, lp[1]);
+	BufferIO::WriteInt32(pbuf, host_info.start_lp);
+	BufferIO::WriteInt32(pbuf, host_info.start_lp);
 	BufferIO::WriteInt16(pbuf, 0);
 	BufferIO::WriteInt16(pbuf, 0);
 	BufferIO::WriteInt16(pbuf, 0);
