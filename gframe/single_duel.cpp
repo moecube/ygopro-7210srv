@@ -1871,8 +1871,7 @@ void SingleDuel::RequestField(DuelPlayer* dp) {
 	NetServer::SendBufferToPlayer(dp, STOC_GAME_MSG, phasebuf, 3);
 
 	char query_buffer[256];
-	char* qbuf = query_buffer;
-	int length = query_field_info(pduel, (unsigned char*)qbuf);
+	int length = query_field_info(pduel, (unsigned char*)query_buffer);
 	NetServer::SendBufferToPlayer(dp, STOC_GAME_MSG, query_buffer, length);
 	RefreshMzone(1 - player, 0xffdfff, 0, dp);
 	RefreshMzone(player, 0xffdfff, 0, dp);
@@ -2231,7 +2230,7 @@ void SingleDuel::TestCard(int code) {
 	time_t seed = time(0);
 	mtrandom rnd;
 	rnd.reset(seed);
-	set_script_reader(default_script_reader);
+	set_script_reader((script_reader)ScriptReaderEx);
 	set_card_reader((card_reader)DataManager::CardReader);
 	set_message_handler((message_handler)SingleDuel::MessageHandler);
 	rnd.reset(seed);

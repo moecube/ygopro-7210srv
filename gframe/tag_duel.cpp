@@ -630,7 +630,25 @@ void TagDuel::DuelEndProc() {
 	NetServer::StopServer();
 }
 void TagDuel::Surrender(DuelPlayer* dp) {
-	return;
+	if(dp->type > 3 || !pduel)
+		return;
+	unsigned char wbuf[3];
+	uint32 player = (dp->type < 2) ? 0 : 1;
+	wbuf[0] = MSG_WIN;
+	wbuf[1] = 1 - player;
+	wbuf[2] = 0;
+	NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, wbuf, 3);
+	NetServer::ReSendToPlayer(players[1]);
+	NetServer::ReSendToPlayer(players[2]);
+	NetServer::ReSendToPlayer(players[3]);
+	for(auto oit = observers.begin(); oit != observers.end(); ++oit)
+		NetServer::ReSendToPlayer(*oit);
+#ifdef YGOPRO_SERVER_MODE
+	NetServer::ReSendToPlayers(cache_recorder, replay_recorder);
+#endif
+	EndDuel();
+	DuelEndProc();
+	event_del(etimer);
 }
 int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 	char* offset, *pbufw, *pbuf = msgbuffer;
@@ -1891,8 +1909,7 @@ void TagDuel::RequestField(DuelPlayer* dp) {
 	NetServer::SendBufferToPlayer(dp, STOC_GAME_MSG, phasebuf, 3);
 
 	char query_buffer[256];
-	char* qbuf = query_buffer;
-	int length = query_field_info(pduel, (unsigned char*)qbuf);
+	int length = query_field_info(pduel, (unsigned char*)query_buffer);
 	NetServer::SendBufferToPlayer(dp, STOC_GAME_MSG, query_buffer, length);
 	RefreshMzone(1 - player, 0xffdfff, 0, dp);
 	RefreshMzone(player, 0xffdfff, 0, dp);
