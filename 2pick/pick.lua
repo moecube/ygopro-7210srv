@@ -229,18 +229,30 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	
-	-- -- World Cup / Additional Picks
-	-- for p=0,1 do
-	-- 	if Duel.IsPlayerNeedToPickDeck(p) then
-	-- 		Duel.Hint(HINT_CARD,p,72332074)
-	-- 		local ng=Group.CreateGroup()
-	-- 		local card1=Duel.CreateToken(p,72332074)
-	-- 		local card2=Duel.CreateToken(p,72332074)
-	-- 		ng:AddCard(card1)
-	-- 		ng:AddCard(card2)
-	-- 		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
-	-- 	end
-	-- end
+	-- Shadoll Additional Picks
+	for p=0,1 do
+		if Duel.IsPlayerNeedToPickDeck(p) then
+			Duel.Hint(HINT_CARD,p,86938484)
+			local ng=Group.CreateGroup()
+			local card1=Duel.CreateToken(p,86938484)
+			local card2=Duel.CreateToken(p,86938484)
+			local card3=Duel.CreateToken(p,74822425)
+			local card4=Duel.CreateToken(p,19261966)
+			local card5=Duel.CreateToken(p,20366274)
+			local card6=Duel.CreateToken(p,48424886)
+			local card7=Duel.CreateToken(p,74009824)
+			local card8=Duel.CreateToken(p,94977269)
+			ng:AddCard(card1)
+			ng:AddCard(card2)
+			ng:AddCard(card3)
+			ng:AddCard(card4)
+			ng:AddCard(card5)
+			ng:AddCard(card6)
+			ng:AddCard(card7)
+			ng:AddCard(card8)
+			Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+		end
+	end
 	
 	Auxiliary.SaveDeck()
 	for p=0,1 do
@@ -267,6 +279,8 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
+	--Shadoll Event
+	Auxiliary.Load_Shadow_Rule()
 end
 
 function Auxiliary.Load_Skill_DrawSense_Rule()
@@ -341,7 +355,30 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 end
 
 
+function Auxiliary.Load_Shadow_Rule()
+	local e1=Effect.GlobalEffect()
+	e1:SetDescription(1166)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e1:SetCode(EFFECT_SPSUMMON_PROC)
+	e1:SetRange(LOCATION_EXTRA)
+	e1:SetCondition(Auxiliary.LinkCondition(nil,2,2,nil))
+	e1:SetTarget(Auxiliary.LinkTarget(nil,2,2,nil))
+	e1:SetOperation(Auxiliary.LinkOperation(nil,2,2,nil))
+	e1:SetValue(SUMMON_TYPE_LINK)
+	local e2=Effect.GlobalEffect()
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e2:SetTargetRange(LOCATION_EXTRA,0)
+	e2:SetTarget(Auxiliary.IsConstruct)
+	e2:SetLabelObject(e1)
+	Duel.RegisterEffect(e2,0)
+	return
+end
 
+function Auxiliary.IsConstruct(e,c)
+	return c:IsCode(86938484)
+end
 
 
 -- function Auxiliary.Load_Skill_DestinyDraw_Rule()
