@@ -550,6 +550,7 @@ void SingleDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 	set_message_handler((message_handler)SingleDuel::MessageHandler);
 	rnd.reset(seed);
 	pduel = create_duel(rnd.rand());
+	preload_script(pduel, "./script/special.lua", 0);
 	set_player_info(pduel, 0, host_info.start_lp, host_info.start_hand, host_info.draw_count, !pick_deck_saved[0]);
 	set_player_info(pduel, 1, host_info.start_lp, host_info.start_hand, host_info.draw_count, !pick_deck_saved[1]);
 	pick_deck_saved[0] = false;
@@ -1870,7 +1871,7 @@ void SingleDuel::RequestField(DuelPlayer* dp) {
 	BufferIO::WriteInt16(pbuf_p, phase);
 	NetServer::SendBufferToPlayer(dp, STOC_GAME_MSG, phasebuf, 3);
 
-	char query_buffer[256];
+	char query_buffer[1024];
 	int length = query_field_info(pduel, (unsigned char*)query_buffer);
 	NetServer::SendBufferToPlayer(dp, STOC_GAME_MSG, query_buffer, length);
 	RefreshMzone(1 - player, 0xffdfff, 0, dp);
@@ -1916,7 +1917,11 @@ void SingleDuel::RefreshMzone(int player, int flag, int use_cache, DuelPlayer* d
 void SingleDuel::RefreshMzone(int player, int flag, int use_cache)
 #endif //YGOPRO_SERVER_MODE
 {
+#ifdef YGOPRO_SERVER_MODE
+	char query_buffer[0x20000];
+#else
 	char query_buffer[0x2000];
+#endif
 	char* qbuf = query_buffer;
 	BufferIO::WriteInt8(qbuf, MSG_UPDATE_DATA);
 	BufferIO::WriteInt8(qbuf, player);
@@ -1960,7 +1965,11 @@ void SingleDuel::RefreshSzone(int player, int flag, int use_cache, DuelPlayer* d
 void SingleDuel::RefreshSzone(int player, int flag, int use_cache)
 #endif //YGOPRO_SERVER_MODE
 {
+#ifdef YGOPRO_SERVER_MODE
+	char query_buffer[0x20000];
+#else
 	char query_buffer[0x2000];
+#endif
 	char* qbuf = query_buffer;
 	BufferIO::WriteInt8(qbuf, MSG_UPDATE_DATA);
 	BufferIO::WriteInt8(qbuf, player);
@@ -2004,7 +2013,11 @@ void SingleDuel::RefreshHand(int player, int flag, int use_cache, DuelPlayer* dp
 void SingleDuel::RefreshHand(int player, int flag, int use_cache)
 #endif //YGOPRO_SERVER_MODE
 {
+#ifdef YGOPRO_SERVER_MODE
+	char query_buffer[0x20000];
+#else
 	char query_buffer[0x2000];
+#endif
 	char* qbuf = query_buffer;
 	BufferIO::WriteInt8(qbuf, MSG_UPDATE_DATA);
 	BufferIO::WriteInt8(qbuf, player);
@@ -2052,7 +2065,11 @@ void SingleDuel::RefreshGrave(int player, int flag, int use_cache, DuelPlayer* d
 void SingleDuel::RefreshGrave(int player, int flag, int use_cache)
 #endif //YGOPRO_SERVER_MODE
 {
+#ifdef YGOPRO_SERVER_MODE
+	char query_buffer[0x20000];
+#else
 	char query_buffer[0x2000];
+#endif
 	char* qbuf = query_buffer;
 	BufferIO::WriteInt8(qbuf, MSG_UPDATE_DATA);
 	BufferIO::WriteInt8(qbuf, player);
@@ -2082,7 +2099,11 @@ void SingleDuel::RefreshExtra(int player, int flag, int use_cache, DuelPlayer* d
 void SingleDuel::RefreshExtra(int player, int flag, int use_cache)
 #endif //YGOPRO_SERVER_MODE
 {
+#ifdef YGOPRO_SERVER_MODE
+	char query_buffer[0x20000];
+#else
 	char query_buffer[0x2000];
+#endif
 	char* qbuf = query_buffer;
 	BufferIO::WriteInt8(qbuf, MSG_UPDATE_DATA);
 	BufferIO::WriteInt8(qbuf, player);
@@ -2116,7 +2137,7 @@ if(!dp || dp == players[player])
 }
 #ifdef YGOPRO_SERVER_MODE
 void SingleDuel::RefreshRemoved(int player, int flag, int use_cache, DuelPlayer* dp) {
-	char query_buffer[0x2000];
+	char query_buffer[0x20000];
 	char* qbuf = query_buffer;
 	BufferIO::WriteInt8(qbuf, MSG_UPDATE_DATA);
 	BufferIO::WriteInt8(qbuf, player);

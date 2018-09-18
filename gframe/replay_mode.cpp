@@ -156,6 +156,7 @@ bool ReplayMode::StartDuel() {
 		cur_replay.ReadName(mainGame->dInfo.clientname);
 	}
 	pduel = create_duel(rnd.rand());
+	preload_script(pduel, "./script/special.lua", 0);
 	int start_lp = cur_replay.ReadInt32();
 	int start_hand = cur_replay.ReadInt32();
 	int draw_count = cur_replay.ReadInt32();
@@ -220,7 +221,7 @@ bool ReplayMode::StartDuel() {
 		size_t slen = cur_replay.ReadInt16();
 		cur_replay.ReadData(filename, slen);
 		filename[slen] = 0;
-		if(!preload_script(pduel, filename, slen)) {
+		if(!preload_script(pduel, filename, 0)) {
 			return false;
 		}
 	}
