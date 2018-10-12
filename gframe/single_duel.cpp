@@ -551,10 +551,9 @@ void SingleDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 	rnd.reset(seed);
 	pduel = create_duel(rnd.rand());
 	preload_script(pduel, "./script/special.lua", 0);
+	preload_script(pduel, "./script/init.lua", 0);
 	set_player_info(pduel, 0, host_info.start_lp, host_info.start_hand, host_info.draw_count, !pick_deck_saved[0]);
 	set_player_info(pduel, 1, host_info.start_lp, host_info.start_hand, host_info.draw_count, !pick_deck_saved[1]);
-	pick_deck_saved[0] = false;
-	pick_deck_saved[1] = false;
 	int opt = (int)host_info.duel_rule << 16;
 	if(host_info.no_shuffle_deck)
 		opt |= DUEL_PSEUDO_SHUFFLE;
@@ -2256,6 +2255,8 @@ void SingleDuel::TestCard(int code) {
 	set_message_handler((message_handler)SingleDuel::MessageHandler);
 	rnd.reset(seed);
 	unsigned long tduel = create_duel(rnd.rand());
+	preload_script(tduel, "./script/special.lua", 0);
+	preload_script(tduel, "./script/init.lua", 0);
 	set_player_info(tduel, 0, 8000, 5, 1);
 	set_player_info(tduel, 1, 8000, 5, 1);
 	new_card(tduel, code, 0, 0, LOCATION_DECK, 0, POS_FACEUP_ATTACK);

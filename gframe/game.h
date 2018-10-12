@@ -49,6 +49,7 @@ struct Config {
 	int chkIgnoreDeckChanges;
 	int defaultOT;
 	int enable_bot_mode;
+	int quick_animation;
 	bool window_maximized;
 	int window_width;
 	int window_height;
@@ -94,7 +95,6 @@ struct DuelInfo {
 	wchar_t str_card_count[2][16];
 	video::SColor card_count_color[2];
 	bool isReplaySwapped;
-	std::vector<unsigned int> announce_cache;
 };
 
 struct BotInfo {
@@ -165,6 +165,7 @@ public:
 	void LoadConfig();
 	void SaveConfig();
 	void ShowCardInfo(int code, bool resize = false);
+	void ClearCardInfo(int player = 0);
 	void AddChatMsg(wchar_t* msg, int player);
 	void ClearChatMsg();
 	void AddDebugMsg(char* msgbuf);
@@ -283,6 +284,7 @@ public:
 	//hint text
 	irr::gui::IGUIStaticText* stHintMsg;
 	irr::gui::IGUIStaticText* stTip;
+	irr::gui::IGUIStaticText* stCardListTip;
 	//infos
 	irr::gui::IGUITabControl* wInfos;
 	irr::gui::IGUIStaticText* stName;
@@ -299,6 +301,7 @@ public:
 	irr::gui::IGUICheckBox* chkRandomPos;
 	irr::gui::IGUICheckBox* chkAutoChain;
 	irr::gui::IGUICheckBox* chkWaitChain;
+	irr::gui::IGUICheckBox* chkQuickAnimation;
 	irr::gui::IGUICheckBox* chkHideSetname;
 	irr::gui::IGUICheckBox* chkHideHintButton;
 	irr::gui::IGUICheckBox* chkIgnoreDeckChanges;
@@ -406,6 +409,11 @@ public:
 	irr::gui::IGUIStaticText* stQMessage;
 	irr::gui::IGUIButton* btnYes;
 	irr::gui::IGUIButton* btnNo;
+	//surrender yes/no
+	irr::gui::IGUIWindow* wSurrender;
+	irr::gui::IGUIStaticText* stSurrenderMessage;
+	irr::gui::IGUIButton* btnSurrenderYes;
+	irr::gui::IGUIButton* btnSurrenderNo;
 	//options
 	irr::gui::IGUIWindow* wOptions;
 	irr::gui::IGUIStaticText* stOptions;
@@ -675,6 +683,8 @@ extern HostInfo game_info;
 #define BUTTON_DISPLAY_4			294
 #define SCROLL_CARD_DISPLAY			295
 #define BUTTON_CARD_DISP_OK			296
+#define BUTTON_SURRENDER_YES		297
+#define BUTTON_SURRENDER_NO			298
 #define BUTTON_CATEGORY_OK			300
 #define COMBOBOX_DBLFLIST			301
 #define COMBOBOX_DBDECKS			302
@@ -718,10 +728,11 @@ extern HostInfo game_info;
 #define BUTTON_WINDOW_RESIZE_M		366
 #define BUTTON_WINDOW_RESIZE_L		367
 #define BUTTON_WINDOW_RESIZE_XL		368
-#define COMBOBOX_LOCALE				369
+#define CHECKBOX_QUICK_ANIMATION	369
 
 #define COMBOBOX_SORTTYPE			370
 #define COMBOBOX_LIMIT				371
+#define COMBOBOX_LOCALE				372
 
 #define BUTTON_MARKS_FILTER			380
 #define BUTTON_MARKERS_OK			381
@@ -738,7 +749,9 @@ extern HostInfo game_info;
 #define TEXTURE_ATTACK				5
 #define TEXTURE_ACTIVATE			6
 
+#ifndef DEFAULT_DUEL_RULE
 #define DEFAULT_DUEL_RULE			4
+#endif
 
 #define CARD_ARTWORK_VERSIONS_OFFSET	10
 #endif // GAME_H

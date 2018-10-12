@@ -43,6 +43,7 @@ int SingleMode::SinglePlayThread(void* param) {
 	set_message_handler((message_handler)MessageHandler);
 	pduel = create_duel(rnd.rand());
 	preload_script(pduel, "./script/special.lua", 0);
+	preload_script(pduel, "./script/init.lua", 0);
 	set_player_info(pduel, 0, start_lp, start_hand, draw_count);
 	set_player_info(pduel, 1, start_lp, start_hand, draw_count);
 	mainGame->dInfo.lp[0] = start_lp;
@@ -55,7 +56,6 @@ int SingleMode::SinglePlayThread(void* param) {
 	mainGame->dInfo.clientname[0] = 0;
 	mainGame->dInfo.player_type = 0;
 	mainGame->dInfo.turn = 0;
-	mainGame->dInfo.announce_cache.clear();
 	char filename[256];
 	size_t slen = 0;
 	if(open_file) {
@@ -87,16 +87,11 @@ int SingleMode::SinglePlayThread(void* param) {
 	rh.seed = seed;
 	mainGame->gMutex.Lock();
 	mainGame->HideElement(mainGame->wSinglePlay);
+	mainGame->ClearCardInfo();
 	mainGame->wCardImg->setVisible(true);
 	mainGame->wInfos->setVisible(true);
 	mainGame->btnLeaveGame->setVisible(true);
 	mainGame->btnLeaveGame->setText(dataManager.GetSysString(1210));
-	mainGame->stName->setText(L"");
-	mainGame->stInfo->setText(L"");
-	mainGame->stDataInfo->setText(L"");
-	mainGame->stSetName->setText(L"");
-	mainGame->stText->setText(L"");
-	mainGame->scrCardText->setVisible(false);
 	mainGame->wPhase->setVisible(true);
 	mainGame->dField.Clear();
 	mainGame->dInfo.isFirst = true;

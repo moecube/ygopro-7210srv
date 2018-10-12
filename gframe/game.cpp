@@ -361,6 +361,9 @@ bool Game::Initialize() {
 	posY += 30;
 	chkWaitChain = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabHelper, -1, dataManager.GetSysString(1277));
 	chkWaitChain->setChecked(gameConf.chkWaitChain != 0);
+	posY += 30;
+	chkQuickAnimation = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabHelper, CHECKBOX_QUICK_ANIMATION, dataManager.GetSysString(1299));
+	chkQuickAnimation->setChecked(gameConf.quick_animation != 0);
 	//system
 	irr::gui::IGUITab* tabSystem = wInfos->addTab(dataManager.GetSysString(1273));
 	posY = 20;
@@ -454,6 +457,14 @@ bool Game::Initialize() {
 	stQMessage->setTextAlignment(irr::gui::EGUIA_UPPERLEFT, irr::gui::EGUIA_CENTER);
 	btnYes = env->addButton(rect<s32>(100, 105, 150, 130), wQuery, BUTTON_YES, dataManager.GetSysString(1213));
 	btnNo = env->addButton(rect<s32>(200, 105, 250, 130), wQuery, BUTTON_NO, dataManager.GetSysString(1214));
+	//surrender yes/no (310)
+	wSurrender = env->addWindow(rect<s32>(490, 200, 840, 340), false, dataManager.GetSysString(560));
+	wSurrender->getCloseButton()->setVisible(false);
+	wSurrender->setVisible(false);
+	stSurrenderMessage = env->addStaticText(dataManager.GetSysString(1359), rect<s32>(20, 20, 350, 100), false, true, wSurrender, -1, false);
+	stSurrenderMessage->setTextAlignment(irr::gui::EGUIA_UPPERLEFT, irr::gui::EGUIA_CENTER);
+	btnSurrenderYes = env->addButton(rect<s32>(100, 105, 150, 130), wSurrender, BUTTON_SURRENDER_YES, dataManager.GetSysString(1213));
+	btnSurrenderNo = env->addButton(rect<s32>(200, 105, 250, 130), wSurrender, BUTTON_SURRENDER_NO, dataManager.GetSysString(1214));
 	//options (310)
 	wOptions = env->addWindow(rect<s32>(490, 200, 840, 340), false, L"");
 	wOptions->getCloseButton()->setVisible(false);
@@ -785,6 +796,11 @@ bool Game::Initialize() {
 	stTip->setBackgroundColor(0xc0ffffff);
 	stTip->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	stTip->setVisible(false);
+	//tip for cards in select / display list
+	stCardListTip = env->addStaticText(L"", rect<s32>(0, 0, 150, 150), false, true, wCardSelect, -1, true);
+	stCardListTip->setBackgroundColor(0xc0ffffff);
+	stCardListTip->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	stCardListTip->setVisible(false);
 	device->setEventReceiver(&menuHandler);
 	LoadConfig();
 	if(!soundManager.Init()) {
@@ -1244,6 +1260,7 @@ void Game::LoadConfig() {
 	gameConf.chkIgnoreDeckChanges = 0;
 	gameConf.defaultOT = 1;
 	gameConf.enable_bot_mode = 1;
+	gameConf.quick_animation = 0;
 	gameConf.enable_sound = true;
 	gameConf.sound_volume = 0.5;
 	gameConf.enable_music = true;
@@ -1320,6 +1337,8 @@ void Game::LoadConfig() {
 				gameConf.defaultOT = atoi(valbuf);
 			} else if(!strcmp(strbuf, "enable_bot_mode")) {
 				gameConf.enable_bot_mode = atoi(valbuf);
+			} else if(!strcmp(strbuf, "quick_animation")) {
+				gameConf.quick_animation = atoi(valbuf);
 			} else if(!strcmp(strbuf, "window_maximized")) {
 				gameConf.window_maximized = atoi(valbuf) > 0;
 			} else if(!strcmp(strbuf, "window_width")) {
@@ -1430,6 +1449,8 @@ void Game::LoadConfig() {
 				gameConf.defaultOT = atoi(valbuf);
 			} else if(!strcmp(strbuf, "enable_bot_mode")) {
 				gameConf.enable_bot_mode = atoi(valbuf);
+			} else if(!strcmp(strbuf, "quick_animation")) {
+				gameConf.quick_animation = atoi(valbuf);
 			} else if(!strcmp(strbuf, "window_maximized")) {
 				gameConf.window_maximized = atoi(valbuf) > 0;
 			} else if(!strcmp(strbuf, "window_width")) {
@@ -1474,7 +1495,32 @@ void Game::LoadConfig() {
 		}
 		fclose(fp_user);
 	} else {
-		SaveConfig();
+#ifdef _WIN32
+		unsigned int lcid = ((unsigned int)GetSystemDefaultLangID()) & 0xff;
+		switch(lcid) {
+			case 0x04: {
+				myswprintf(mainGame->gameConf.locale, L"%ls", L"zh-CN");
+				break;
+			}
+			case 0x09: {
+				myswprintf(mainGame->gameConf.locale, L"%ls", L"en-US");
+				break;
+			}
+			case 0x0a: {
+				myswprintf(mainGame->gameConf.locale, L"%ls", L"es-ES");
+				break;
+			}
+			case 0x11: {
+				myswprintf(mainGame->gameConf.locale, L"%ls", L"ja-JP");
+				break;
+			}
+			case 0x12: {
+				myswprintf(mainGame->gameConf.locale, L"%ls", L"ko-KR");
+				break;
+			}
+		}
+#endif
+		//SaveConfig();
 	}
 #endif //YGOPRO_COMPAT_MYCARD
 }
@@ -1526,6 +1572,7 @@ void Game::SaveConfig() {
 	fprintf(fp, "ignore_deck_changes = %d\n", (chkIgnoreDeckChanges->isChecked() ? 1 : 0));
 	fprintf(fp, "default_ot = %d\n", gameConf.defaultOT);
 	fprintf(fp, "enable_bot_mode = %d\n", gameConf.enable_bot_mode);
+	fprintf(fp, "quick_animation = %d\n", gameConf.quick_animation);
 	fprintf(fp, "window_maximized = %d\n", (gameConf.window_maximized ? 1 : 0));
 	fprintf(fp, "window_width = %d\n", gameConf.window_width);
 	fprintf(fp, "window_height = %d\n", gameConf.window_height);
@@ -1631,6 +1678,16 @@ void Game::ShowCardInfo(int code, bool resize) {
 	showingtext = dataManager.GetText(code);
 	const auto& tsize = stText->getRelativePosition();
 	InitStaticText(stText, tsize.getWidth(), tsize.getHeight(), guiFont, showingtext);
+}
+void Game::ClearCardInfo(int player) {
+	imgCard->setImage(imageManager.tCover[player]);
+	showingcode = 0;
+	stName->setText(L"");
+	stInfo->setText(L"");
+	stDataInfo->setText(L"");
+	stSetName->setText(L"");
+	stText->setText(L"");
+	scrCardText->setVisible(false);
 }
 void Game::AddChatMsg(wchar_t* msg, int player) {
 	for(int i = 7; i > 0; --i) {
@@ -1817,6 +1874,7 @@ void Game::CloseDuelWindow() {
 	wPhase->setVisible(false);
 	wPosSelect->setVisible(false);
 	wQuery->setVisible(false);
+	wSurrender->setVisible(false);
 	wReplayControl->setVisible(false);
 	wReplaySave->setVisible(false);
 	stHintMsg->setVisible(false);

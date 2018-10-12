@@ -4,7 +4,7 @@ solution "ygo"
     objdir "obj"
 
     configurations { "Release", "Debug" }
-    defines { "LUA_COMPAT_5_2" }
+    defines { "LUA_COMPAT_5_2", "LUA_SAFE_MODE" }
     configuration "windows"
         defines { "WIN32", "_WIN32" }
         startproject "ygopro"
@@ -55,10 +55,12 @@ solution "ygo"
     configuration {"not vs*", "windows"}
         buildoptions { "-static-libgcc" }
 
+    startproject "ygopro"
+
+    include "lua"
     include "ocgcore"
     include "gframe"
     if os.ishost("windows") then
     include "event"
-    include "lua"
     include "sqlite3"
     end
