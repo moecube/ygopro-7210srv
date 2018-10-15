@@ -397,7 +397,7 @@ function Auxiliary.EVENT_Grandpas_Cards_Operation(e,tp,eg,ep,ev,re,r,rp)
 			bc:RegisterEffect(e1)
 		end
 		-- local code=e:GetHandler():GetCode()
-		Exodia_announce_filter={0x40,OPCODE_ISSETCARD,OPCODE_ISCODE,OPCODE_NOT,OPCODE_AND}
+		Exodia_announce_filter={0x40,OPCODE_ISSETCARD,0,OPCODE_ISCODE,OPCODE_NOT,OPCODE_AND}
 		local ac=Duel.AnnounceCardFilter(c.GetOwner(c),table.unpack(Exodia_announce_filter))
 		local Yugi_Card=Duel.CreateToken(c.GetOwner(c),ac)
 		Duel.SendtoHand(Yugi_Card,c.GetOwner(c),0,REASON_RULE)
