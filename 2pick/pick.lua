@@ -229,30 +229,30 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	
-	-- Shadoll Additional Picks
-	for p=0,1 do
-		if Duel.IsPlayerNeedToPickDeck(p) then
-			Duel.Hint(HINT_CARD,p,86938484)
-			local ng=Group.CreateGroup()
-			local card1=Duel.CreateToken(p,86938484)
-			local card2=Duel.CreateToken(p,86938484)
-			local card3=Duel.CreateToken(p,74822425)
-			local card4=Duel.CreateToken(p,19261966)
-			local card5=Duel.CreateToken(p,20366274)
-			local card6=Duel.CreateToken(p,48424886)
-			local card7=Duel.CreateToken(p,74009824)
-			local card8=Duel.CreateToken(p,94977269)
-			ng:AddCard(card1)
-			ng:AddCard(card2)
-			ng:AddCard(card3)
-			ng:AddCard(card4)
-			ng:AddCard(card5)
-			ng:AddCard(card6)
-			ng:AddCard(card7)
-			ng:AddCard(card8)
-			Duel.SendtoDeck(ng,nil,0,REASON_RULE)
-		end
-	end
+	-- -- Shadoll Additional Picks
+	-- for p=0,1 do
+	-- 	if Duel.IsPlayerNeedToPickDeck(p) then
+	-- 		Duel.Hint(HINT_CARD,p,86938484)
+	-- 		local ng=Group.CreateGroup()
+	-- 		local card1=Duel.CreateToken(p,86938484)
+	-- 		local card2=Duel.CreateToken(p,86938484)
+	-- 		local card3=Duel.CreateToken(p,74822425)
+	-- 		local card4=Duel.CreateToken(p,19261966)
+	-- 		local card5=Duel.CreateToken(p,20366274)
+	-- 		local card6=Duel.CreateToken(p,48424886)
+	-- 		local card7=Duel.CreateToken(p,74009824)
+	-- 		local card8=Duel.CreateToken(p,94977269)
+	-- 		ng:AddCard(card1)
+	-- 		ng:AddCard(card2)
+	-- 		ng:AddCard(card3)
+	-- 		ng:AddCard(card4)
+	-- 		ng:AddCard(card5)
+	-- 		ng:AddCard(card6)
+	-- 		ng:AddCard(card7)
+	-- 		ng:AddCard(card8)
+	-- 		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+	-- 	end
+	-- end
 	
 	Auxiliary.SaveDeck()
 	for p=0,1 do
@@ -279,9 +279,12 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
-	--Shadoll Event
-	Auxiliary.Load_Shadow_Rule()
+
+	--EVENT Grandpa's Cards
+	Auxiliary.Load_EVENT_Grandpas_Cards()
 end
+
+	--Skill_DrawSense_Rule
 
 function Auxiliary.Load_Skill_DrawSense_Rule()
 	local e1=Effect.GlobalEffect()
@@ -309,14 +312,14 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 	if dt~=0 then
 		_replace_count=0
 		_replace_max=dt
-		local e1=Effect.CreateEffect(e:GetHandler())
-		e1:SetType(EFFECT_TYPE_FIELD)
-		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-		e1:SetCode(EFFECT_DRAW_COUNT)
-		e1:SetTargetRange(1,0)
-		e1:SetReset(RESET_PHASE+PHASE_DRAW)
-		e1:SetValue(0)
-		Duel.RegisterEffect(e1,tp)
+		-- local e1=Effect.CreateEffect(e:GetHandler())
+		-- e1:SetType(EFFECT_TYPE_FIELD)
+		-- e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		-- e1:SetCode(EFFECT_DRAW_COUNT)
+		-- e1:SetTargetRange(1,0)
+		-- e1:SetReset(RESET_PHASE+PHASE_DRAW)
+		-- e1:SetValue(0)
+		-- Duel.RegisterEffect(e1,tp)
 
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CARDTYPE)
 		local SenseType=(Duel.AnnounceType(tp))
@@ -329,7 +332,7 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 				Duel.ShuffleDeck(tp)
 				Duel.MoveSequence(tc,0)
 			end
-			Duel.Draw(tp,1,REASON_RULE)
+			--Duel.Draw(tp,1,REASON_RULE)
 		elseif (SenseType==1 and Duel.IsExistingMatchingCard(Card.IsType,tp,LOCATION_DECK,0,1,nil,TYPE_SPELL)) then
 			g=Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_DECK,0,nil,TYPE_SPELL)
 			local SenseCard=g:RandomSelect(tp,1)
@@ -338,7 +341,7 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 				Duel.ShuffleDeck(tp)
 				Duel.MoveSequence(tc,0)
 			end
-			Duel.Draw(tp,1,REASON_RULE)
+			--Duel.Draw(tp,1,REASON_RULE)
 		elseif (SenseType==2 and Duel.IsExistingMatchingCard(Card.IsType,tp,LOCATION_DECK,0,1,nil,TYPE_TRAP)) then
 			g=Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_DECK,0,nil,TYPE_TRAP)
 			local SenseCard=g:RandomSelect(tp,1)
@@ -347,40 +350,98 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 				Duel.ShuffleDeck(tp)
 				Duel.MoveSequence(tc,0)
 			end
-			Duel.Draw(tp,1,REASON_RULE)
+			--Duel.Draw(tp,1,REASON_RULE)
 		else 
 			Duel.ShuffleDeck(tp)
-			Duel.Draw(tp,1,REASON_RULE)
+			--Duel.Draw(tp,1,REASON_RULE)
 		end
 	end
 end
 
-
-function Auxiliary.Load_Shadow_Rule()
+	--EVENT Grandpa's Cards
+	
+function Auxiliary.Load_EVENT_Grandpas_Cards()
 	local e1=Effect.GlobalEffect()
-	e1:SetDescription(1166)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
-	e1:SetCode(EFFECT_SPSUMMON_PROC)
-	e1:SetRange(LOCATION_EXTRA)
-	e1:SetCondition(Auxiliary.LinkCondition(nil,2,2,nil))
-	e1:SetTarget(Auxiliary.LinkTarget(nil,2,2,nil))
-	e1:SetOperation(Auxiliary.LinkOperation(nil,2,2,nil))
-	e1:SetValue(SUMMON_TYPE_LINK)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_CANNOT_DISABLE)
+	e1:SetCode(EVENT_BATTLED)
+	e1:SetTarget(Auxiliary.EVENT_Grandpas_Cards_Target)
+	e1:SetOperation(Auxiliary.EVENT_Grandpas_Cards_Operation)
 	local e2=Effect.GlobalEffect()
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
-	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
-	e2:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
-	e2:SetTarget(Auxiliary.IsConstruct)
+	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_CANNOT_DISABLE)
+	e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
 	e2:SetLabelObject(e1)
 	Duel.RegisterEffect(e2,0)
-	return
 end
 
-function Auxiliary.IsConstruct(e,c)
-	return c:IsCode(86938484)
+function Auxiliary.EVENT_Grandpas_Cards_Target(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsStatus(STATUS_BATTLE_DESTROYED) then return false end
+	local bc=c:GetBattleTarget()
+	return bc and bc:IsStatus(STATUS_BATTLE_DESTROYED) and not bc:IsType(TYPE_TOKEN) and bc:GetLeaveFieldDest()==0
 end
 
+function Auxiliary.EVENT_Grandpas_Cards_Operation(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local bc=c:GetBattleTarget()
+	if Duel.SelectYesNo(c.GetOwner(c),94) then
+		if bc:IsRelateToBattle() then
+			local e1=Effect.CreateEffect(c)
+			e1:SetCode(EFFECT_SEND_REPLACE)
+			e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+			e1:SetTarget(Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Target)
+			e1:SetOperation(Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Operation)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_DAMAGE)
+			bc:RegisterEffect(e1)
+		end
+		-- local code=e:GetHandler():GetCode()
+		Exodia_announce_filter={0x40,OPCODE_ISSETCARD,OPCODE_ISCODE,OPCODE_NOT,OPCODE_AND}
+		local ac=Duel.AnnounceCardFilter(c.GetOwner(c),table.unpack(Exodia_announce_filter))
+		local Yugi_Card=Duel.CreateToken(c.GetOwner(c),ac)
+		Duel.SendtoHand(Yugi_Card,c.GetOwner(c),0,REASON_RULE)
+	end
+end
+
+function Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Target(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:GetDestination()==LOCATION_GRAVE and c:IsReason(REASON_BATTLE) end
+	return true
+end
+
+function Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Operation(e,tp,eg,ep,ev,re,r,rp)
+	Duel.SendtoHand(e:GetHandler(),nil,2,REASON_RULE)
+end
+
+
+	--Shadoll Event
+
+-- function Auxiliary.Load_Shadow_Rule()
+-- 	local e1=Effect.GlobalEffect()
+-- 	e1:SetDescription(1166)
+-- 	e1:SetType(EFFECT_TYPE_FIELD)
+-- 	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+-- 	e1:SetCode(EFFECT_SPSUMMON_PROC)
+-- 	e1:SetRange(LOCATION_EXTRA)
+-- 	e1:SetCondition(Auxiliary.LinkCondition(nil,2,2,nil))
+-- 	e1:SetTarget(Auxiliary.LinkTarget(nil,2,2,nil))
+-- 	e1:SetOperation(Auxiliary.LinkOperation(nil,2,2,nil))
+-- 	e1:SetValue(SUMMON_TYPE_LINK)
+-- 	local e2=Effect.GlobalEffect()
+-- 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+-- 	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+-- 	e2:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+-- 	e2:SetTarget(Auxiliary.IsConstruct)
+-- 	e2:SetLabelObject(e1)
+-- 	Duel.RegisterEffect(e2,0)
+-- 	return
+-- end
+
+-- function Auxiliary.IsConstruct(e,c)
+-- 	return c:IsCode(86938484)
+-- end
+
+	--DestinyDraw Rule
 
 -- function Auxiliary.Load_Skill_DestinyDraw_Rule()
 -- 	local e1=Effect.GlobalEffect()
