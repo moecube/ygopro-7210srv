@@ -380,7 +380,7 @@ function Auxiliary.EVENT_Grandpas_Cards_Target(e,tp,eg,ep,ev,re,r,rp)
 	if c:IsStatus(STATUS_BATTLE_DESTROYED) then return false end
 	local bc=c:GetBattleTarget()
 	return bc and bc:IsStatus(STATUS_BATTLE_DESTROYED) and not bc:IsType(TYPE_TOKEN) 
-		and bc:GetLeaveFieldDest()==0 and bit.band(d:GetBattlePosition(),POS_ATTACK)~=0
+		and bc:GetLeaveFieldDest()==0 and bit.band(d:GetBattlePosition(),POS_FACEUP_ATTACK)~=0
 end
 
 function Auxiliary.EVENT_Grandpas_Cards_Operation(e,tp,eg,ep,ev,re,r,rp)
