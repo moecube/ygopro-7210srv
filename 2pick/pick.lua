@@ -280,8 +280,10 @@ function Auxiliary.Load2PickRule()
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
 
+	--Temporarily Closed for Unoffical 2Pick Competation on Oct. 20th, Sat.
+	--Reopen on Sunday.
 	--EVENT Grandpa's Cards
-	Auxiliary.Load_EVENT_Grandpas_Cards()
+	-- Auxiliary.Load_EVENT_Grandpas_Cards()
 end
 
 	--Skill_DrawSense_Rule
