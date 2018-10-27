@@ -229,30 +229,22 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	
-	-- -- Shadoll Additional Picks
-	-- for p=0,1 do
-	-- 	if Duel.IsPlayerNeedToPickDeck(p) then
-	-- 		Duel.Hint(HINT_CARD,p,86938484)
-	-- 		local ng=Group.CreateGroup()
-	-- 		local card1=Duel.CreateToken(p,86938484)
-	-- 		local card2=Duel.CreateToken(p,86938484)
-	-- 		local card3=Duel.CreateToken(p,74822425)
-	-- 		local card4=Duel.CreateToken(p,19261966)
-	-- 		local card5=Duel.CreateToken(p,20366274)
-	-- 		local card6=Duel.CreateToken(p,48424886)
-	-- 		local card7=Duel.CreateToken(p,74009824)
-	-- 		local card8=Duel.CreateToken(p,94977269)
-	-- 		ng:AddCard(card1)
-	-- 		ng:AddCard(card2)
-	-- 		ng:AddCard(card3)
-	-- 		ng:AddCard(card4)
-	-- 		ng:AddCard(card5)
-	-- 		ng:AddCard(card6)
-	-- 		ng:AddCard(card7)
-	-- 		ng:AddCard(card8)
-	-- 		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
-	-- 	end
-	-- end
+	-- XXYYZZ Additional Picks
+	xyz_list={91998119,91998120,91998121}
+	for p=0,1 do
+		if Duel.IsPlayerNeedToPickDeck(p) then
+			local ng=Group.CreateGroup()
+			local card1=Duel.CreateToken(p,2111707)
+			local card2=Duel.CreateToken(p,25119460)
+			local card3=Duel.CreateToken(p,99724761)
+			local card4=Duel.CreateToken(p,xyz_list[math.random(#xyz_list)])
+			ng:AddCard(card1)
+			ng:AddCard(card2)
+			ng:AddCard(card3)
+			ng:AddCard(card4)
+			Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+		end
+	end
 	
 	Auxiliary.SaveDeck()
 	for p=0,1 do
