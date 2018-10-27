@@ -280,10 +280,8 @@ function Auxiliary.Load2PickRule()
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
 
-	--Temporarily Closed for Unoffical 2Pick Competation on Oct. 20th, Sat.
-	--Reopen on Sunday.
-	--EVENT Grandpa's Cards
-	-- Auxiliary.Load_EVENT_Grandpas_Cards()
+	--EVENT XYZ Impact
+	Auxiliary.Load_EVENT_XYYZ_Impact()
 end
 
 	--Skill_DrawSense_Rule
@@ -360,61 +358,215 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
-	--EVENT Grandpa's Cards
-	
-function Auxiliary.Load_EVENT_Grandpas_Cards()
+
+--EVENT_XYYZ_Impact
+
+function Auxiliary.Load_EVENT_XYYZ_Impact()
 	local e1=Effect.GlobalEffect()
-	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetCode(EVENT_BATTLED)
-	e1:SetTarget(Auxiliary.EVENT_Grandpas_Cards_Target)
-	e1:SetOperation(Auxiliary.EVENT_Grandpas_Cards_Operation)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e1:SetCode(EFFECT_SPSUMMON_PROC)
+	e1:SetRange(LOCATION_EXTRA)
+	e1:SetCondition(Auxiliary.XY_Condition)
+	e1:SetOperation(Auxiliary.XY_Operation)
 	local e2=Effect.GlobalEffect()
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
-	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_CANNOT_DISABLE)
-	e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e2:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e2:SetTarget(Auxiliary.IsXYMoster)
 	e2:SetLabelObject(e1)
 	Duel.RegisterEffect(e2,0)
+	local e3=Effect.GlobalEffect()
+	e3:SetType(EFFECT_TYPE_FIELD)
+	e3:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e3:SetCode(EFFECT_SPSUMMON_PROC)
+	e3:SetRange(LOCATION_EXTRA)
+	e3:SetCondition(Auxiliary.XYYZ_Condition)
+	e3:SetOperation(Auxiliary.XYYZ_Operation)
+	local e4=Effect.GlobalEffect()
+	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e4:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e4:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e4:SetTarget(Auxiliary.IsXYYZMoster)
+	e4:SetLabelObject(e3)
+	Duel.RegisterEffect(e4,0)
 end
 
-function Auxiliary.EVENT_Grandpas_Cards_Target(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsStatus(STATUS_BATTLE_DESTROYED) then return false end
-	local bc=c:GetBattleTarget()
-	return bc and bc:IsStatus(STATUS_BATTLE_DESTROYED) and not bc:IsType(TYPE_TOKEN) 
-		and bc:GetLeaveFieldDest()==0 and bit.band(bc:GetBattlePosition(),POS_FACEUP_ATTACK)~=0
+function Auxiliary.IsXYMoster(e,c)
+	return c:IsCode(2111707) or c:IsCode(99724761) or c:IsCode(25119460)
 end
 
-function Auxiliary.EVENT_Grandpas_Cards_Operation(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local bc=c:GetBattleTarget()
-	if Duel.SelectYesNo(c.GetOwner(c),94) then
-		if bc:IsRelateToBattle() then
-			local e1=Effect.CreateEffect(c)
-			e1:SetCode(EFFECT_SEND_REPLACE)
-			e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-			e1:SetTarget(Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Target)
-			e1:SetOperation(Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Operation)
-			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_DAMAGE)
-			bc:RegisterEffect(e1)
-		end
-		-- local code=e:GetHandler():GetCode()
-		Exodia_announce_filter={0x40,OPCODE_ISSETCARD,0,OPCODE_ISCODE,OPCODE_NOT,OPCODE_AND}
-		local ac=Duel.AnnounceCardFilter(c.GetOwner(c),table.unpack(Exodia_announce_filter))
-		local Yugi_Card=Duel.CreateToken(c.GetOwner(c),ac)
-		Duel.SendtoHand(Yugi_Card,c.GetOwner(c),0,REASON_RULE)
+function Auxiliary.IsXYYZMoster(e,c)
+	return c:IsCode(91998119)
+end
+
+function Auxiliary.XY_ffilter(c,fc,sub,mg,sg)
+	return not c:IsType(TYPE_TOKEN)  and 
+	(not sg or not sg:IsExists(Card.IsFusionAttribute,2,c,c:GetFusionAttribute()))
+end
+
+function Auxiliary.XY_spfilter1(c,tp,fc)
+	return not c:IsType(TYPE_TOKEN) and c:IsAbleToRemoveAsCost()  and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,c,tp,fc,c)
+end
+
+function Auxiliary.XY_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return not c:IsType(TYPE_TOKEN) and c:IsAbleToRemoveAsCost()  and c:IsCanBeFusionMaterial(fc) and c:IsFusionAttribute(mc:GetFusionAttribute()) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+
+function Auxiliary.XY_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+
+function Auxiliary.XY_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g1=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,1,nil,tp,c)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g2=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,1,g1:GetFirst(),tp,c,g1:GetFirst())
+	g1:Merge(g2)
+	Duel.Remove(g1,POS_FACEUP,REASON_COST)
+end
+
+function Auxiliary.XYYZ_spcostfilter(c)
+	return c:IsAbleToRemoveAsCost() and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_FUSION)
+end
+
+function Auxiliary.XYYZ_spcost_selector(c,tp,g,sg,i)
+	sg:AddCard(c)
+	g:RemoveCard(c)
+	local flag=false
+	if i<2 then
+		flag=g:IsExists(Auxiliary.XYYZ_spcostfilter,1,nil,tp,g,sg,i+1)
+	else
+		flag=sg:FilterCount(Card.IsAttribute,nil,ATTRIBUTE_LIGHT)>0
+			and sg:FilterCount(Card.IsAttribute,nil,ATTRIBUTE_LIGHT)>0
 	end
+	sg:RemoveCard(c)
+	g:AddCard(c)
+	return flag
 end
 
-function Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Target(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:GetDestination()==LOCATION_GRAVE and c:IsReason(REASON_BATTLE) end
-	return true
+function Auxiliary.XYYZ_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	if Duel.GetLocationCountFromEx(tp)<=0 then return false end
+	local g=Duel.GetMatchingGroup(Auxiliary.XYYZ_spcostfilter,tp,LOCATION_GRAVE,0,nil)
+	local sg=Group.CreateGroup()
+	return g:IsExists(Auxiliary.XYYZ_spcost_selector,1,nil,tp,g,sg,1)
 end
 
-function Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Operation(e,tp,eg,ep,ev,re,r,rp)
-	Duel.SendtoHand(e:GetHandler(),nil,2,REASON_RULE)
+function Auxiliary.XYYZ_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g=Duel.GetMatchingGroup(Auxiliary.XYYZ_spcostfilter,tp,LOCATION_GRAVE,0,nil)
+	local sg=Group.CreateGroup()
+	for i=1,2 do
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+		local g1=g:FilterSelect(tp,Auxiliary.XYYZ_spcost_selector,1,1,nil,tp,g,sg,i)
+		sg:Merge(g1)
+		g:Sub(g1)
+	end
+	Duel.Remove(sg,POS_FACEUP,REASON_COST)
 end
+
+
+
+-- function Auxiliary.XY_matfilter(c)
+-- 	return c:IsAbleToRemoveAsCost() and not c:IsType(TYPE_TOKEN)
+-- end
+
+-- function Auxiliary.XY_att_filter1(c,tp)
+-- 	return Duel.IsExistingMatchingCard(Auxiliary.XY_att_filter2,tp,0,LOCATION_MZONE,1,c,c:GetAttribute())
+-- end
+
+-- function Auxiliary.XY_att_filter2(c,att)
+-- 	return c:IsAttribute(att) and not c:IsType(TYPE_TOKEN)
+-- end
+
+-- function Auxiliary.XY_spfilter1(c,tp,g)
+-- 	return g:IsExists(Auxiliary.XY_spfilter2,1,c,tp,c)
+-- end
+
+-- function Auxiliary.XY_spfilter2(c,tp,mc)
+-- 	return (c:IsFusionCode(62651957) and mc:IsFusionCode(64500000)
+-- 		or c:IsFusionCode(64500000) and mc:IsFusionCode(62651957))
+-- 		and Duel.GetLocationCountFromEx(tp,tp,Group.FromCards(c,mc))>0
+-- end
+
+-- function Auxiliary.XY_Condition(e,c)
+-- 	if c==nil then return true end
+-- 	local tp=c:GetControler()
+-- 	local g=Duel.GetMatchingGroup(Auxiliary.XY_matfilter,tp,LOCATION_ONFIELD,0,nil)
+-- 	return g:IsExists(c99724761.spfilter1,1,nil,tp,g)
+-- end
+
+-- function Auxiliary.XY_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+-- 	local g=Duel.GetMatchingGroup(c99724761.matfilter,tp,LOCATION_ONFIELD,0,nil)
+-- 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+-- 	local g1=g:FilterSelect(tp,c99724761.spfilter1,1,1,nil,tp,g)
+-- 	local mc=g1:GetFirst()
+-- 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+-- 	local g2=g:FilterSelect(tp,c99724761.spfilter2,1,1,mc,tp,mc)
+-- 	g1:Merge(g2)
+-- 	Duel.Remove(g1,POS_FACEUP,REASON_COST)
+-- end
+
+
+-- 	--EVENT Grandpa's Cards
+	
+-- function Auxiliary.Load_EVENT_Grandpas_Cards()
+-- 	local e1=Effect.GlobalEffect()
+-- 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+-- 	e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_CANNOT_DISABLE)
+-- 	e1:SetCode(EVENT_BATTLED)
+-- 	e1:SetTarget(Auxiliary.EVENT_Grandpas_Cards_Target)
+-- 	e1:SetOperation(Auxiliary.EVENT_Grandpas_Cards_Operation)
+-- 	local e2=Effect.GlobalEffect()
+-- 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+-- 	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_CANNOT_DISABLE)
+-- 	e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+-- 	e2:SetLabelObject(e1)
+-- 	Duel.RegisterEffect(e2,0)
+-- end
+
+-- function Auxiliary.EVENT_Grandpas_Cards_Target(e,tp,eg,ep,ev,re,r,rp)
+-- 	local c=e:GetHandler()
+-- 	if c:IsStatus(STATUS_BATTLE_DESTROYED) then return false end
+-- 	local bc=c:GetBattleTarget()
+-- 	return bc and bc:IsStatus(STATUS_BATTLE_DESTROYED) and not bc:IsType(TYPE_TOKEN) 
+-- 		and bc:GetLeaveFieldDest()==0 and bit.band(bc:GetBattlePosition(),POS_FACEUP_ATTACK)~=0
+-- end
+
+-- function Auxiliary.EVENT_Grandpas_Cards_Operation(e,tp,eg,ep,ev,re,r,rp)
+-- 	local c=e:GetHandler()
+-- 	local bc=c:GetBattleTarget()
+-- 	if Duel.SelectYesNo(c.GetOwner(c),94) then
+-- 		if bc:IsRelateToBattle() then
+-- 			local e1=Effect.CreateEffect(c)
+-- 			e1:SetCode(EFFECT_SEND_REPLACE)
+-- 			e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+-- 			e1:SetTarget(Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Target)
+-- 			e1:SetOperation(Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Operation)
+-- 			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_DAMAGE)
+-- 			bc:RegisterEffect(e1)
+-- 		end
+-- 		-- local code=e:GetHandler():GetCode()
+-- 		Exodia_announce_filter={0x40,OPCODE_ISSETCARD,0,OPCODE_ISCODE,OPCODE_NOT,OPCODE_AND}
+-- 		local ac=Duel.AnnounceCardFilter(c.GetOwner(c),table.unpack(Exodia_announce_filter))
+-- 		local Yugi_Card=Duel.CreateToken(c.GetOwner(c),ac)
+-- 		Duel.SendtoHand(Yugi_Card,c.GetOwner(c),0,REASON_RULE)
+-- 	end
+-- end
+
+-- function Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Target(e,tp,eg,ep,ev,re,r,rp,chk)
+-- 	local c=e:GetHandler()
+-- 	if chk==0 then return c:GetDestination()==LOCATION_GRAVE and c:IsReason(REASON_BATTLE) end
+-- 	return true
+-- end
+
+-- function Auxiliary.EVENT_Grandpas_Cards_Return_Hand_Operation(e,tp,eg,ep,ev,re,r,rp)
+-- 	Duel.SendtoHand(e:GetHandler(),nil,2,REASON_RULE)
+-- end
 
 
 	--Shadoll Event
