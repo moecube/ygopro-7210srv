@@ -292,9 +292,10 @@ end
 
 function Auxiliary.Skill_DrawSense_Condition(e,tp,eg,ep,ev,re,r,rp)
 	local tp=Duel.GetTurnPlayer()
-	return (Duel.GetLP(1-tp))-(Duel.GetLP(tp))>1999
+	return (Duel.GetLP(1-tp))-(Duel.GetLP(tp))>2499
 		and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>1
 		and Duel.GetDrawCount(tp)>0
+		and Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0
 		--and Duel.IsExistingMatchingCard(Auxiliary.Skill_DestinyDraw_SearchFilter,tp,LOCATION_DECK,0,1,nil)
 end
 
@@ -398,12 +399,14 @@ function Auxiliary.XY_ffilter(c,fc,sub,mg,sg)
 end
 
 function Auxiliary.XY_spfilter1(c,tp,fc)
-	return not c:IsType(TYPE_TOKEN) and c:IsAbleToRemoveAsCost()  and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,c,tp,fc,c)
+	return not c:IsType(TYPE_TOKEN) and Duel.IsPlayerCanRelease(tp,c)
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,c,tp,fc,c)
 end
 
 function Auxiliary.XY_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return not c:IsType(TYPE_TOKEN) and c:IsAbleToRemoveAsCost()  and c:IsCanBeFusionMaterial(fc) and c:IsFusionAttribute(mc:GetFusionAttribute()) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+	return not c:IsType(TYPE_TOKEN) and Duel.IsPlayerCanRelease(tp,c)  
+		and c:IsCanBeFusionMaterial(fc) and c:IsFusionAttribute(mc:GetFusionAttribute()) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 
 function Auxiliary.XY_Condition(e,c)
@@ -413,12 +416,12 @@ function Auxiliary.XY_Condition(e,c)
 end
 
 function Auxiliary.XY_Operation(e,tp,eg,ep,ev,re,r,rp,c)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
 	local g1=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,1,nil,tp,c)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
 	local g2=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,1,g1:GetFirst(),tp,c,g1:GetFirst())
 	g1:Merge(g2)
-	Duel.Remove(g1,POS_FACEUP,REASON_COST)
+	Duel.Release(g1,REASON_COST)
 end
 
 function Auxiliary.XYYZ_spcostfilter(c)
