@@ -132,18 +132,25 @@ int SingleMode::SinglePlayThread(void* param) {
 	}
 	last_replay.EndRecord();
 	time_t nowtime = time(NULL);
-	struct tm *localedtime = localtime(&nowtime);
-	char timebuf[40];
-	strftime(timebuf, 40, "%Y-%m-%d %H-%M-%S", localedtime);
-	size_t size = strlen(timebuf) + 1;
-	wchar_t timetext[80];
-	mbstowcs(timetext, timebuf, size);
+	tm* localedtime = localtime(&nowtime);
+	wchar_t timetext[40];
+	wcsftime(timetext, 40, L"%Y-%m-%d %H-%M-%S", localedtime);
 	mainGame->ebRSName->setText(timetext);
-	mainGame->wReplaySave->setText(dataManager.GetSysString(1340));
-	mainGame->PopupElement(mainGame->wReplaySave);
-	mainGame->gMutex.Unlock();
-	mainGame->replaySignal.Reset();
-	mainGame->replaySignal.Wait();
+	if(!mainGame->chkAutoSaveReplay->isChecked()) {
+		mainGame->wReplaySave->setText(dataManager.GetSysString(1340));
+		mainGame->PopupElement(mainGame->wReplaySave);
+		mainGame->gMutex.Unlock();
+		mainGame->replaySignal.Reset();
+		mainGame->replaySignal.Wait();
+	} else {
+		mainGame->actionParam = 1;
+		wchar_t msgbuf[256];
+		myswprintf(msgbuf, dataManager.GetSysString(1367), timetext);
+		mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->guiFont, msgbuf);
+		mainGame->PopupElement(mainGame->wACMessage, 20);
+		mainGame->gMutex.Unlock();
+		mainGame->WaitFrameSignal(30);
+	}
 	if(mainGame->actionParam)
 		last_replay.SaveReplay(mainGame->ebRSName->getText());
 	end_duel(pduel);
@@ -766,7 +773,7 @@ bool SingleMode::SinglePlayAnalyze(char* msg, unsigned int len) {
 			memcpy(msgbuf, begin, len + 1);
 			BufferIO::DecodeUTF8(msgbuf, msg);
 			mainGame->gMutex.Lock();
-			mainGame->SetStaticText(mainGame->stMessage, 310, mainGame->textFont, msg);
+			mainGame->SetStaticText(mainGame->stMessage, 310, mainGame->guiFont, msg);
 			mainGame->PopupElement(mainGame->wMessage);
 			mainGame->gMutex.Unlock();
 			mainGame->actionSignal.Reset();
@@ -850,28 +857,36 @@ void SingleMode::SinglePlayReload() {
 	mainGame->dField.UpdateFieldCard(mainGame->LocalPlayer(1), LOCATION_REMOVED, (char*)queryBuffer);
 }
 byte* SingleMode::ScriptReaderEx(const char* script_name, int* slen) {
-	char sname[256] = "./specials";
-	strcat(sname, script_name + 8);//default script name: ./script/c%d.lua
-	byte* buffer = ScriptReader(sname, slen);
-	if(!buffer) {
-		char sname[256] = "./2pick";
-		strcat(sname, script_name + 8);
-		buffer = default_script_reader(sname, slen);
-	}
-	if(!buffer) {
-		char sname[256] = "./expansions";
-		strcat(sname, script_name + 1);
-		buffer = ScriptReader(sname, slen);
-	}
-	if(!buffer) {
-		char sname[256] = "./beta";
- 		strcat(sname, script_name + 1);
- 		buffer = ScriptReader(sname, slen);
- 	}
+	byte* buffer = ScriptReaderExDirectry("./specials", script_name, slen, 8);
 	if(buffer)
 		return buffer;
-	else
-		return ScriptReader(script_name, slen);
+	buffer = ScriptReaderExDirectry("./2pick", script_name, slen, 8);
+	if(buffer)
+		return buffer;
+	buffer = ScriptReaderExDirectry("./expansions", script_name, slen);
+	if(buffer)
+		return buffer;
+	buffer = ScriptReaderExDirectry("./beta", script_name, slen);
+	if(buffer)
+		return buffer;
+	bool find = false;
+	FileSystem::TraversalDir("./expansions", [script_name, slen, &buffer, &find](const char* name, bool isdir) {
+		if(!find && isdir && strcmp(name, ".") && strcmp(name, "..")) {
+			char subdir[1024];
+			sprintf(subdir, "./expansions/%s", name);
+			buffer = ScriptReaderExDirectry(subdir, script_name, slen);
+			if(buffer)
+				find = true;
+		}
+	});
+	if(find)
+		return buffer;
+	return ScriptReader(script_name, slen);
+}
+byte* SingleMode::ScriptReaderExDirectry(const char* path, const char* script_name, int* slen, int pre_len) {
+	char sname[256];
+	sprintf(sname, "%s%s", path, script_name + pre_len); //default script name: ./script/c%d.lua
+	return ScriptReader(sname, slen);
 }
 byte* SingleMode::ScriptReader(const char* script_name, int* slen) {
 	FILE *fp;

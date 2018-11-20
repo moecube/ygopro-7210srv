@@ -15,19 +15,10 @@
 #include "netserver.h"
 #include "single_mode.h"
 #include <sstream>
+#include <regex>
 #endif //YGOPRO_SERVER_MODE
 
-#ifndef _WIN32
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#else
-#include <direct.h>
-#include <io.h>
-#endif
-
-unsigned short PRO_VERSION = 0x1346;
+unsigned short PRO_VERSION = 0x1347;
 
 namespace ygo {
 
@@ -66,17 +57,18 @@ void Game::MainTestLoop(int code) {
 	NetServer::InitTestCard(code);
 }
 void Game::LoadBetaDB() {
+	LoadExpansionDBDirectry("./beta");
 #ifdef _WIN32
 	char fpath[1000];
 	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./beta/*.cdb", &fdataw);
+	HANDLE fh = FindFirstFileW(L"./beta/*", &fdataw);
 	if(fh != INVALID_HANDLE_VALUE) {
 		do {
-			if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+			if(wcscmp(L".",fdataw.cFileName) != 0 && wcscmp(L"..",fdataw.cFileName) != 0 && fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				char fname[780];
 				BufferIO::EncodeUTF8(fdataw.cFileName, fname);
 				sprintf(fpath, "./beta/%s", fname);
-				dataManager.LoadDB(fpath);
+				LoadExpansionDBDirectry(fpath);
 			}
 		} while(FindNextFileW(fh, &fdataw));
 		FindClose(fh);
@@ -86,12 +78,11 @@ void Game::LoadBetaDB() {
 	struct dirent * dirp;
 	if((dir = opendir("./beta/")) != NULL) {
 		while((dirp = readdir(dir)) != NULL) {
-			size_t len = strlen(dirp->d_name);
-			if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".cdb") != 0)
+			if (strcmp(".", dirp->d_name) == 0 || strcmp("..", dirp->d_name) == 0 || dirp->d_type != DT_DIR)
 				continue;
 			char filepath[1000];
-			sprintf(filepath, "./beta/%s", dirp->d_name);
-			dataManager.LoadDB(filepath);
+			sprintf(filepath, "./beta/%s/", dirp->d_name);
+			LoadExpansionDBDirectry(filepath);
 		}
 		closedir(dir);
 	}
@@ -110,8 +101,10 @@ bool Game::Initialize() {
 		params.DriverType = irr::video::EDT_OPENGL;
 	params.WindowSize = irr::core::dimension2d<u32>(gameConf.window_width, gameConf.window_height);
 	device = irr::createDeviceEx(params);
-	if(!device)
+	if(!device) {
+		ErrorLog("Failed to create Irrlicht Engine device!");
 		return false;
+	}
 	// Apply skin
 	if(gameConf.skin_index && gameConf.use_d3d) {
 		wchar_t skin_dir[16];
@@ -152,24 +145,32 @@ bool Game::Initialize() {
 	driver->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, false);
 	driver->setTextureCreationFlag(irr::video::ETCF_OPTIMIZED_FOR_QUALITY, true);
 	imageManager.SetDevice(device);
-	if(!imageManager.Initial())
+	if(!imageManager.Initial()) {
+		ErrorLog("Failed to load textures!");
 		return false;
+	}
 	LoadExpansionDB();
 	if(dataManager.LoadDB(GetLocaleDir("cards.cdb"))) {} else
-	if(!dataManager.LoadDB("cards.cdb"))
+	if(!dataManager.LoadDB("cards.cdb")) {
+		ErrorLog("Failed to load card database (cards.cdb)!");
 		return false;
+	}
 	if(dataManager.LoadStrings(GetLocaleDir("strings.conf"))) {} else
-	if(!dataManager.LoadStrings("strings.conf"))
+	if(!dataManager.LoadStrings("strings.conf")) {
+		ErrorLog("Failed to load strings!");
 		return false;
-	dataManager.LoadStrings("./expansions/strings.conf");
+	}
+	LoadExpansionStrings();
 	env = device->getGUIEnvironment();
 	numFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 16);
 	adFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 12);
 	lpcFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 48);
 	guiFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.textfont, gameConf.textfontsize);
 	textFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.textfont, gameConf.textfontsize);
-	if(!numFont || !textFont)
+	if(!numFont || !textFont) {
+		ErrorLog("Failed to load font(s)!");
 		return false;
+	}
 	smgr = device->getSceneManager();
 	device->setWindowCaption(L"KoishiPro");
 	device->setResizable(true);
@@ -376,7 +377,10 @@ bool Game::Initialize() {
 	posY += 30;
 	chkQuickAnimation = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabHelper, CHECKBOX_QUICK_ANIMATION, dataManager.GetSysString(1299));
 	chkQuickAnimation->setChecked(gameConf.quick_animation != 0);
-	elmTabHelperLast = chkQuickAnimation;
+	posY += 30;
+	chkAutoSaveReplay = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabHelper, -1, dataManager.GetSysString(1366));
+	chkAutoSaveReplay->setChecked(gameConf.auto_save_replay != 0);
+	elmTabHelperLast = chkAutoSaveReplay;
 	//system
 	irr::gui::IGUITab* _tabSystem = wInfos->addTab(dataManager.GetSysString(1273));
 	_tabSystem->setRelativePosition(recti(16, 49, 299, 362));
@@ -407,6 +411,12 @@ bool Game::Initialize() {
 	posY += 30;
 	chkAutoSearch = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabSystem, CHECKBOX_AUTO_SEARCH, dataManager.GetSysString(1358));
 	chkAutoSearch->setChecked(gameConf.auto_search_limit >= 0);
+	posY += 30;
+	chkMultiKeywords = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabSystem, CHECKBOX_MULTI_KEYWORDS, dataManager.GetSysString(1378));
+	chkMultiKeywords->setChecked(gameConf.search_multiple_keywords > 0);
+	posY += 30;
+	chkRegex = env->addCheckBox(false, rect<s32>(posX, posY, posX + 260, posY + 25), tabSystem, CHECKBOX_REGEX, dataManager.GetSysString(1379));
+	chkRegex->setChecked(gameConf.search_regex > 0);
 	posY += 30;
 	env->addStaticText(dataManager.GetSysString(1282), rect<s32>(posX + 23, posY + 3, posX + 120, posY + 28), false, false, tabSystem);
 	btnWinResizeS = env->addButton(rect<s32>(posX + 115, posY, posX + 145, posY + 25), tabSystem, BUTTON_WINDOW_RESIZE_S, dataManager.GetSysString(1283));
@@ -626,10 +636,10 @@ bool Game::Initialize() {
 	scrFilter->setSmallStep(1);
 	scrFilter->setVisible(false);
 	//rename deck
-	wRenameDeck = env->addWindow(rect<s32>(510, 200, 820, 320), false, dataManager.GetSysString(1367));
+	wRenameDeck = env->addWindow(rect<s32>(510, 200, 820, 320), false, dataManager.GetSysString(1376));
 	wRenameDeck->getCloseButton()->setVisible(false);
 	wRenameDeck->setVisible(false);
-	env->addStaticText(dataManager.GetSysString(1368), rect<s32>(20, 25, 290, 45), false, false, wRenameDeck);
+	env->addStaticText(dataManager.GetSysString(1377), rect<s32>(20, 25, 290, 45), false, false, wRenameDeck);
 	ebREName =  env->addEditBox(L"", rect<s32>(20, 50, 290, 70), true, wRenameDeck, -1);
 	ebREName->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	btnREYes = env->addButton(rect<s32>(70, 80, 140, 105), wRenameDeck, BUTTON_RENAME_DECK_SAVE, dataManager.GetSysString(1341));
@@ -1038,71 +1048,46 @@ void Game::SetStaticText(irr::gui::IGUIStaticText* pControl, u32 cWidth, irr::gu
 }
 #endif //YGOPRO_SERVER_MODE
 void Game::LoadExpansionDB() {
-#ifdef _WIN32
-	char fpath[1000];
-	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./expansions/*.cdb", &fdataw);
-	if(fh != INVALID_HANDLE_VALUE) {
-		do {
-			if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				char fname[780];
-				BufferIO::EncodeUTF8(fdataw.cFileName, fname);
-				sprintf(fpath, "./expansions/%s", fname);
-				dataManager.LoadDB(fpath);
-			}
-		} while(FindNextFileW(fh, &fdataw));
-		FindClose(fh);
-	}
-#else
-	DIR * dir;
-	struct dirent * dirp;
-	if((dir = opendir("./expansions/")) != NULL) {
-		while((dirp = readdir(dir)) != NULL) {
-			size_t len = strlen(dirp->d_name);
-			if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".cdb") != 0)
-				continue;
-			char filepath[1000];
-			sprintf(filepath, "./expansions/%s", dirp->d_name);
-			dataManager.LoadDB(filepath);
+	LoadExpansionDBDirectry("./expansions");
+	FileSystem::TraversalDir("./expansions", [this](const char* name, bool isdir) {
+		if(isdir && strcmp(name, ".") && strcmp(name, "..")) {
+			char subdir[1024];
+			sprintf(subdir, "./expansions/%s", name);
+			LoadExpansionDBDirectry(subdir);
 		}
-		closedir(dir);
-	}
-#endif
+	});
+}
+void Game::LoadExpansionDBDirectry(const char* path) {
+	FileSystem::TraversalDir(path, [path](const char* name, bool isdir) {
+		if(!isdir && strrchr(name, '.') && !mystrncasecmp(strrchr(name, '.'), ".cdb", 4)) {
+			char fpath[1024];
+			sprintf(fpath, "%s/%s", path, name);
+			dataManager.LoadDB(fpath);
+		}
+	});
 }
 #ifndef YGOPRO_SERVER_MODE
+void Game::LoadExpansionStrings() {
+	dataManager.LoadStrings("./expansions/strings.conf");
+	FileSystem::TraversalDir("./expansions", [](const char* name, bool isdir) {
+		if(isdir && strcmp(name, ".") && strcmp(name, "..")) {
+			char fpath[1024];
+			sprintf(fpath, "./expansions/%s/strings.conf", name);
+			dataManager.LoadStrings(fpath);
+		}
+	});
+}
 void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 	cbDeck->clear();
-#ifdef _WIN32
-	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./deck/*.ydk", &fdataw);
-	if(fh == INVALID_HANDLE_VALUE)
-		return;
-	do {
-		if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-			wchar_t* pf = fdataw.cFileName;
-			while(*pf) pf++;
-			while(*pf != L'.') pf--;
-			*pf = 0;
-			cbDeck->addItem(fdataw.cFileName);
+	FileSystem::TraversalDir(L"./deck", [cbDeck](const wchar_t* name, bool isdir) {
+		if(!isdir && wcsrchr(name, '.') && !mywcsncasecmp(wcsrchr(name, '.'), L".ydk", 4)) {
+			size_t len = wcslen(name);
+			wchar_t deckname[256];
+			wcsncpy(deckname, name, len - 4);
+			deckname[len - 4] = 0;
+			cbDeck->addItem(deckname);
 		}
-	} while(FindNextFileW(fh, &fdataw));
-	FindClose(fh);
-#else
-	DIR * dir;
-	struct dirent * dirp;
-	if((dir = opendir("./deck/")) == NULL)
-		return;
-	while((dirp = readdir(dir)) != NULL) {
-		size_t len = strlen(dirp->d_name);
-		if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".ydk") != 0)
-			continue;
-		dirp->d_name[len - 4] = 0;
-		wchar_t wname[256];
-		BufferIO::DecodeUTF8(dirp->d_name, wname);
-		cbDeck->addItem(wname);
-	}
-	closedir(dir);
-#endif
+	});
 	for(size_t i = 0; i < cbDeck->getItemCount(); ++i) {
 		if(!wcscmp(cbDeck->getItem(i), gameConf.lastdeck)) {
 			cbDeck->setSelected(i);
@@ -1112,90 +1097,25 @@ void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 }
 void Game::RefreshReplay() {
 	lstReplayList->clear();
-#ifdef _WIN32
-	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./replay/*.yrp", &fdataw);
-	if(fh == INVALID_HANDLE_VALUE)
-		return;
-	do {
-		if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && Replay::CheckReplay(fdataw.cFileName)) {
-			lstReplayList->addItem(fdataw.cFileName);
-		}
-	} while(FindNextFileW(fh, &fdataw));
-	FindClose(fh);
-#else
-	DIR * dir;
-	struct dirent * dirp;
-	if((dir = opendir("./replay/")) == NULL)
-		return;
-	while((dirp = readdir(dir)) != NULL) {
-		size_t len = strlen(dirp->d_name);
-		if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".yrp") != 0)
-			continue;
-		wchar_t wname[256];
-		BufferIO::DecodeUTF8(dirp->d_name, wname);
-		if(Replay::CheckReplay(wname))
-			lstReplayList->addItem(wname);
-	}
-	closedir(dir);
-#endif
+	FileSystem::TraversalDir(L"./replay", [this](const wchar_t* name, bool isdir) {
+		if(!isdir && wcsrchr(name, '.') && !mywcsncasecmp(wcsrchr(name, '.'), L".yrp", 4) && Replay::CheckReplay(name))
+			lstReplayList->addItem(name);
+	});
 }
 void Game::RefreshSingleplay() {
 	lstSinglePlayList->clear();
-#ifdef _WIN32
-	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./single/*.lua", &fdataw);
-	if(fh == INVALID_HANDLE_VALUE)
-		return;
-	do {
-		if(!(fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-			lstSinglePlayList->addItem(fdataw.cFileName);
-	} while(FindNextFileW(fh, &fdataw));
-	FindClose(fh);
-#else
-	DIR * dir;
-	struct dirent * dirp;
-	if((dir = opendir("./single/")) == NULL)
-		return;
-	while((dirp = readdir(dir)) != NULL) {
-		size_t len = strlen(dirp->d_name);
-		if(len < 5 || strcasecmp(dirp->d_name + len - 4, ".lua") != 0)
-			continue;
-		wchar_t wname[256];
-		BufferIO::DecodeUTF8(dirp->d_name, wname);
-		lstSinglePlayList->addItem(wname);
-	}
-	closedir(dir);
-#endif
+	FileSystem::TraversalDir(L"./single", [this](const wchar_t* name, bool isdir) {
+		if(!isdir && wcsrchr(name, '.') && !mywcsncasecmp(wcsrchr(name, '.'), L".lua", 4))
+			lstSinglePlayList->addItem(name);
+	});
 }
 void Game::RefreshLocales() {
 	cbLocale->clear();
 	cbLocale->addItem(L"default");
-#ifdef _WIN32
-	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./locales/*", &fdataw);
-	if(fh == INVALID_HANDLE_VALUE)
-		return;
-	do {
-		if((fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && wcscmp(fdataw.cFileName, L".") && wcscmp(fdataw.cFileName, L".."))
-			cbLocale->addItem(fdataw.cFileName);
-	} while(FindNextFileW(fh, &fdataw));
-	FindClose(fh);
-#else
-	DIR * dir;
-	struct dirent * dirp;
-	if((dir = opendir("./locales/")) == NULL)
-		return;
-	while((dirp = readdir(dir)) != NULL) {
-		size_t len = strlen(dirp->d_name);
-		wchar_t wname[256];
-		BufferIO::DecodeUTF8(dirp->d_name, wname);
-		if(!wcscmp(wname, L".") || !wcscmp(wname, L".."))
-			continue;
-		cbLocale->addItem(wname);
-	}
-	closedir(dir);
-#endif
+	FileSystem::TraversalDir(L"./locales", [this](const wchar_t* name, bool isdir) {
+		if(isdir && wcscmp(name, L".") && wcscmp(name, L".."))
+			cbLocale->addItem(name);
+	});
 	for(size_t i = 0; i < cbLocale->getItemCount(); ++i) {
 		if(!wcscmp(cbLocale->getItem(i), gameConf.locale)) {
 			cbLocale->setSelected(i);
@@ -1281,10 +1201,13 @@ void Game::LoadConfig() {
 	gameConf.draw_field_spell = 1;
 	gameConf.separate_clear_button = 1;
 	gameConf.auto_search_limit = 0;
+	gameConf.search_multiple_keywords = 1;
+	gameConf.search_regex = 0;
 	gameConf.chkIgnoreDeckChanges = 0;
 	gameConf.defaultOT = 1;
 	gameConf.enable_bot_mode = 1;
 	gameConf.quick_animation = 0;
+	gameConf.auto_save_replay = 0;
 	gameConf.enable_sound = true;
 	gameConf.sound_volume = 0.5;
 	gameConf.enable_music = true;
@@ -1355,6 +1278,10 @@ void Game::LoadConfig() {
 				gameConf.separate_clear_button = atoi(valbuf);
 			} else if(!strcmp(strbuf, "auto_search_limit")) {
 				gameConf.auto_search_limit = atoi(valbuf);
+			} else if(!strcmp(strbuf, "search_multiple_keywords")) {
+				gameConf.search_multiple_keywords = atoi(valbuf);
+			} else if(!strcmp(strbuf, "search_regex")) {
+				gameConf.search_regex = atoi(valbuf);
 			} else if(!strcmp(strbuf, "ignore_deck_changes")) {
 				gameConf.chkIgnoreDeckChanges = atoi(valbuf);
 			} else if(!strcmp(strbuf, "default_ot")) {
@@ -1363,6 +1290,8 @@ void Game::LoadConfig() {
 				gameConf.enable_bot_mode = atoi(valbuf);
 			} else if(!strcmp(strbuf, "quick_animation")) {
 				gameConf.quick_animation = atoi(valbuf);
+			} else if(!strcmp(strbuf, "auto_save_replay")) {
+				gameConf.auto_save_replay = atoi(valbuf);
 			} else if(!strcmp(strbuf, "window_maximized")) {
 				gameConf.window_maximized = atoi(valbuf) > 0;
 			} else if(!strcmp(strbuf, "window_width")) {
@@ -1467,6 +1396,10 @@ void Game::LoadConfig() {
 				gameConf.separate_clear_button = atoi(valbuf);
 			} else if(!strcmp(strbuf, "auto_search_limit")) {
 				gameConf.auto_search_limit = atoi(valbuf);
+			} else if(!strcmp(strbuf, "search_multiple_keywords")) {
+				gameConf.search_multiple_keywords = atoi(valbuf);
+			} else if(!strcmp(strbuf, "search_regex")) {
+				gameConf.search_regex = atoi(valbuf);
 			} else if(!strcmp(strbuf, "ignore_deck_changes")) {
 				gameConf.chkIgnoreDeckChanges = atoi(valbuf);
 			} else if(!strcmp(strbuf, "default_ot")) {
@@ -1475,6 +1408,8 @@ void Game::LoadConfig() {
 				gameConf.enable_bot_mode = atoi(valbuf);
 			} else if(!strcmp(strbuf, "quick_animation")) {
 				gameConf.quick_animation = atoi(valbuf);
+			} else if(!strcmp(strbuf, "auto_save_replay")) {
+				gameConf.auto_save_replay = atoi(valbuf);
 			} else if(!strcmp(strbuf, "window_maximized")) {
 				gameConf.window_maximized = atoi(valbuf) > 0;
 			} else if(!strcmp(strbuf, "window_width")) {
@@ -1593,10 +1528,14 @@ void Game::SaveConfig() {
 	fprintf(fp, "separate_clear_button = %d\n", gameConf.separate_clear_button);
 	fprintf(fp, "#auto_search_limit >= 0: Start search automatically when the user enters N chars\n");
 	fprintf(fp, "auto_search_limit = %d\n", gameConf.auto_search_limit);
+	fprintf(fp, "#search_multiple_keywords = 0: Disable. 1: Search mutiple keywords with separator \" \". 2: with separator \"+\"\n");
+	fprintf(fp, "search_multiple_keywords = %d\n", gameConf.search_multiple_keywords);
+	fprintf(fp, "search_regex = %d\n", gameConf.search_regex);
 	fprintf(fp, "ignore_deck_changes = %d\n", (chkIgnoreDeckChanges->isChecked() ? 1 : 0));
 	fprintf(fp, "default_ot = %d\n", gameConf.defaultOT);
 	fprintf(fp, "enable_bot_mode = %d\n", gameConf.enable_bot_mode);
 	fprintf(fp, "quick_animation = %d\n", gameConf.quick_animation);
+	fprintf(fp, "auto_save_replay = %d\n", (chkAutoSaveReplay->isChecked() ? 1 : 0));
 	fprintf(fp, "window_maximized = %d\n", (gameConf.window_maximized ? 1 : 0));
 	fprintf(fp, "window_width = %d\n", gameConf.window_width);
 	fprintf(fp, "window_height = %d\n", gameConf.window_height);
@@ -1713,7 +1652,7 @@ void Game::ClearCardInfo(int player) {
 	stText->setText(L"");
 	scrCardText->setVisible(false);
 }
-void Game::AddChatMsg(wchar_t* msg, int player) {
+void Game::AddChatMsg(const wchar_t* msg, int player) {
 	for(int i = 7; i > 0; --i) {
 		chatMsg[i] = chatMsg[i - 1];
 		chatTiming[i] = chatTiming[i - 1];
@@ -1769,8 +1708,7 @@ void Game::ClearChatMsg() {
 	}
 }
 #endif //YGOPRO_SERVER_MODE
-void Game::AddDebugMsg(char* msg)
-{
+void Game::AddDebugMsg(const char* msg) {
 #ifdef YGOPRO_SERVER_MODE
 	fprintf(stderr, "%s\n", msg);
 #else
@@ -1780,86 +1718,72 @@ void Game::AddDebugMsg(char* msg)
 		AddChatMsg(wbuf, 9);
 	}
 	if (enable_log & 0x2) {
-		FILE* fp = fopen("error.log", "at");
-		if (!fp)
-			return;
-		time_t nowtime = time(NULL);
-		struct tm *localedtime = localtime(&nowtime);
-		char timebuf[40];
-		strftime(timebuf, 40, "%Y-%m-%d %H:%M:%S", localedtime);
-		fprintf(fp, "[%s][Script Error]: %s\n", timebuf, msg);
-		fclose(fp);
+		char msgbuf[1040];
+		sprintf(msgbuf, "[Script Error]: %s", msg);
+		ErrorLog(msgbuf);
 	}
 #endif //YGOPRO_SERVER_MODE
 }
-bool Game::MakeDirectory(const std::string folder) {
-    std::string folder_builder;
-    std::string sub;
-    sub.reserve(folder.size());
-    for(auto it = folder.begin(); it != folder.end(); ++it) {
-        const char c = *it;
-        sub.push_back(c);
-        if(c == '/' || it == folder.end() - 1) {
-            folder_builder.append(sub);
-            if(access(folder_builder.c_str(), 0) != 0)
-#ifdef _WIN32
-                if(mkdir(folder_builder.c_str()) != 0)
-#else
-                if(mkdir(folder_builder.c_str(), 0777) != 0)
-#endif
-                    return false;
-            sub.clear();
-        }
-    }
-    return true;
+#ifndef YGOPRO_SERVER_MODE
+void Game::ErrorLog(const char* msg) {
+	FILE* fp = fopen("error.log", "at");
+	if(!fp)
+		return;
+	time_t nowtime = time(NULL);
+	tm* localedtime = localtime(&nowtime);
+	char timebuf[40];
+	strftime(timebuf, 40, "%Y-%m-%d %H:%M:%S", localedtime);
+	fprintf(fp, "[%s]%s\n", timebuf, msg);
+	fclose(fp);
 }
+#endif //YGOPRO_SERVER_MODE
 void Game::initUtils() {
 	//user files
-	MakeDirectory("replay");
+	FileSystem::MakeDir("replay");
 	//cards from extra pack
-	MakeDirectory("expansions");
+	FileSystem::MakeDir("expansions");
 #ifdef YGOPRO_SERVER_MODE
 	//special scripts
-	MakeDirectory("specials");
-	MakeDirectory("beta");
+	FileSystem::MakeDir("specials");
+	FileSystem::MakeDir("beta");
 #else
-	MakeDirectory("screenshots");
+	FileSystem::MakeDir("screenshots");
 	//files in ygopro-starter-pack
-	MakeDirectory("deck");
-	MakeDirectory("single");
+	FileSystem::MakeDir("deck");
+	FileSystem::MakeDir("single");
 	//original files
-	MakeDirectory("script");
-	MakeDirectory("skin");
-	MakeDirectory("textures");
+	FileSystem::MakeDir("script");
+	FileSystem::MakeDir("skin");
+	FileSystem::MakeDir("textures");
 	//subdirs in textures
-	MakeDirectory("textures/act");
-	MakeDirectory("textures/attack");
-	MakeDirectory("textures/bg");
-	MakeDirectory("textures/bg_deck");
-	MakeDirectory("textures/bg_menu");
-	MakeDirectory("textures/cover");
-	MakeDirectory("textures/cover2");
-	MakeDirectory("textures/pscale");
+	FileSystem::MakeDir("textures/act");
+	FileSystem::MakeDir("textures/attack");
+	FileSystem::MakeDir("textures/bg");
+	FileSystem::MakeDir("textures/bg_deck");
+	FileSystem::MakeDir("textures/bg_menu");
+	FileSystem::MakeDir("textures/cover");
+	FileSystem::MakeDir("textures/cover2");
+	FileSystem::MakeDir("textures/pscale");
 	//sound
 #ifdef YGOPRO_USE_IRRKLANG
-	MakeDirectory("sound");
-	MakeDirectory("sound/BGM");
-	MakeDirectory("sound/BGM/advantage");
-	MakeDirectory("sound/BGM/deck");
-	MakeDirectory("sound/BGM/disadvantage");
-	MakeDirectory("sound/BGM/duel");
-	MakeDirectory("sound/BGM/lose");
-	MakeDirectory("sound/BGM/menu");
-	MakeDirectory("sound/BGM/win");
+	FileSystem::MakeDir("sound");
+	FileSystem::MakeDir("sound/BGM");
+	FileSystem::MakeDir("sound/BGM/advantage");
+	FileSystem::MakeDir("sound/BGM/deck");
+	FileSystem::MakeDir("sound/BGM/disadvantage");
+	FileSystem::MakeDir("sound/BGM/duel");
+	FileSystem::MakeDir("sound/BGM/lose");
+	FileSystem::MakeDir("sound/BGM/menu");
+	FileSystem::MakeDir("sound/BGM/win");
 	//custom sound
-	MakeDirectory("sound/custom");
-	MakeDirectory("sound/BGM/custom");
+	FileSystem::MakeDir("sound/custom");
+	FileSystem::MakeDir("sound/BGM/custom");
 #endif
 	//locales
-	MakeDirectory("locales");
+	FileSystem::MakeDir("locales");
 	//pics
-	MakeDirectory("pics");
-	MakeDirectory("pics/field");
+	FileSystem::MakeDir("pics");
+	FileSystem::MakeDir("pics/field");
 #endif //YGOPRO_SERVER_MODE
 }
 #ifndef YGOPRO_SERVER_MODE
@@ -2239,6 +2163,8 @@ void Game::FlashWindow() {
 #endif
 }
 void Game::takeScreenshot() {
+	if(!FileSystem::IsDirExists(L"./screenshots") && !FileSystem::MakeDir(L"./screenshots"))
+		return;
 	irr::video::IImage* const image = driver->createScreenShot();
 	if(image) {
 		irr::c8 filename[64];
@@ -2248,6 +2174,20 @@ void Game::takeScreenshot() {
 		image->drop();
 	} else
 		device->getLogger()->log(L"Failed to take screenshot.", irr::ELL_WARNING);
+}
+bool Game::CheckRegEx(const std::wstring& text, const std::wstring& exp, bool exact) {
+	if(!gameConf.search_regex)
+		return false;
+	bool result;
+	try {
+		if(exact)
+			result = std::regex_match(text, std::wregex(exp));
+		else
+			result = std::regex_search(text, std::wregex(exp));
+	} catch(...) {
+		result = false;
+	}
+	return result;
 }
 const char* Game::GetLocaleDir(const char* dir) {
 	if(!gameConf.locale || !wcscmp(gameConf.locale, L"default"))
