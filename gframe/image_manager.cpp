@@ -1,5 +1,8 @@
 #include "image_manager.h"
 #include "game.h"
+#ifndef _WIN32
+#include <dirent.h>
+#endif
 
 namespace ygo {
 
@@ -92,27 +95,54 @@ irr::video::ITexture* ImageManager::GetRandomImage(int image_type, s32 width, s3
 	return GetTextureFromFile(ImageName, width, height);
 }
 void ImageManager::RefreshRandomImageList() {
-	RefreshImageDir(L"bg", TEXTURE_DUEL);
-	RefreshImageDir(L"bg_duel", TEXTURE_DUEL);
-	RefreshImageDir(L"bg_deck", TEXTURE_DECK);
-	RefreshImageDir(L"bg_menu", TEXTURE_MENU);
-	RefreshImageDir(L"cover", TEXTURE_COVER_S);
-	RefreshImageDir(L"cover2", TEXTURE_COVER_O);
-	RefreshImageDir(L"attack", TEXTURE_ATTACK);
-	RefreshImageDir(L"act", TEXTURE_ACTIVATE);
+	RefreshImageDir(L"bg/", TEXTURE_DUEL);
+	RefreshImageDir(L"bg_duel/", TEXTURE_DUEL);
+	RefreshImageDir(L"bg_deck/", TEXTURE_DECK);
+	RefreshImageDir(L"bg_menu/", TEXTURE_MENU);
+	RefreshImageDir(L"cover/", TEXTURE_COVER_S);
+	RefreshImageDir(L"cover2/", TEXTURE_COVER_O);
+	RefreshImageDir(L"attack/", TEXTURE_ATTACK);
+	RefreshImageDir(L"act/", TEXTURE_ACTIVATE);
 
 	for(int i = 0; i < 7; ++ i) {
 		saved_image_id[i] = -1;
 	}
 }
 void ImageManager::RefreshImageDir(std::wstring path, int image_type) {
-	std::wstring search = L"./textures/" + path;
-	FileSystem::TraversalDir(search.c_str(), [this, &path, image_type](const wchar_t* name, bool isdir) {
-		if(!isdir && wcsrchr(name, '.') && (!mywcsncasecmp(wcsrchr(name, '.'), L".jpg", 4) || !mywcsncasecmp(wcsrchr(name, '.'), L".png", 4))) {
-			std::wstring filename = path + L"/" + name;
-			ImageList[image_type].push_back(filename);
-		}
-	});
+#ifdef _WIN32
+	WIN32_FIND_DATAW fdataw;
+	std::wstring search = L"./textures/" + path + L"*.*";
+	HANDLE fh = FindFirstFileW(search.c_str(), &fdataw);
+	if(fh == INVALID_HANDLE_VALUE)
+		return;
+	do {
+		size_t len = wcslen(fdataw.cFileName);
+		if((fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || len < 5
+			|| !(_wcsicmp(fdataw.cFileName + len - 4, L".jpg") == 0 || _wcsicmp(fdataw.cFileName + len - 4, L".png") == 0))
+			continue;
+		std::wstring filename = path + (std::wstring)fdataw.cFileName;
+		ImageList[image_type].push_back(filename);
+	} while(FindNextFileW(fh, &fdataw));
+	FindClose(fh);
+#else
+	DIR * dir;
+	struct dirent * dirp;
+	std::wstring wsearchpath = L"./textures/" + path;
+	char searchpath[256];
+	BufferIO::EncodeUTF8(wsearchpath.c_str(), searchpath);
+	if((dir = opendir(searchpath)) == NULL)
+		return;
+	while((dirp = readdir(dir)) != NULL) {
+		size_t len = strlen(dirp->d_name);
+		if(len < 5 || !(strcasecmp(dirp->d_name + len - 4, ".jpg") == 0 || strcasecmp(dirp->d_name + len - 4, ".png")))
+			continue;
+		wchar_t wname[256];
+		BufferIO::DecodeUTF8(dirp->d_name, wname);
+		std::wstring filename = path + (std::wstring)wname;
+		ImageList[image_type].push_back(filename);
+	}
+	closedir(dir);
+#endif
 }
 void ImageManager::SetDevice(irr::IrrlichtDevice* dev) {
 	device = dev;
@@ -271,59 +301,29 @@ void imageScaleNNAA(irr::video::IImage *src, irr::video::IImage *dest) {
 		}
 }
 irr::video::ITexture* ImageManager::GetTextureFromFile(char* file, s32 width, s32 height) {
-#ifdef _WIN32
-	wchar_t name[1024];
-	BufferIO::DecodeUTF8(file, name);
-#else
-	char* name = file;
-#endif // _WIN32
-
 	if(mainGame->gameConf.use_image_scale) {
 		irr::video::ITexture* texture;
-		irr::video::IImage* srcimg = driver->createImageFromFile(name);
+		irr::video::IImage* srcimg = driver->createImageFromFile(file);
 		if(srcimg == NULL)
 			return NULL;
 		if(srcimg->getDimension() == irr::core::dimension2d<u32>(width, height)) {
-			texture = driver->addTexture(name, srcimg);
+			texture = driver->addTexture(file, srcimg);
 		} else {
 			video::IImage *destimg = driver->createImage(srcimg->getColorFormat(), irr::core::dimension2d<u32>(width, height));
 			imageScaleNNAA(srcimg, destimg);
-			texture = driver->addTexture(name, destimg);
+			texture = driver->addTexture(file, destimg);
 			destimg->drop();
 		}
 		srcimg->drop();
 		return texture;
 	} else {
-		return driver->getTexture(name);
+		return driver->getTexture(file);
 	}
 }
 irr::video::ITexture* ImageManager::GetTextureUnknown(s32 width, s32 height, int index) {
 	if(tUnknown[index] == NULL)
 		tUnknown[index] = GetTextureFromFile("textures/unknown.jpg", width, height);
 	return tUnknown[index];
-}
-irr::video::ITexture* ImageManager::GetTextureExpansions(char* file, s32 width, s32 height) {
-	irr::video::ITexture* img = GetTextureExpansionsDirectry("./expansions", file, width, height);
-	if(img != NULL)
-		return img;
-	bool find = false;
-	FileSystem::TraversalDir("./expansions", [this, file, width, height, &img, &find](const char* name, bool isdir) {
-		if(!find && isdir && strcmp(name, ".") && strcmp(name, "..")) {
-			char subdir[1024];
-			sprintf(subdir, "./expansions/%s", name);
-			img = GetTextureExpansionsDirectry(subdir, file, width, height);
-			if(img)
-				find = true;
-		}
-	});
-	if(find)
-		return img;
-	return img;
-}
-irr::video::ITexture* ImageManager::GetTextureExpansionsDirectry(const char* path, char* file, s32 width, s32 height) {
-	char fpath[1000];
-	sprintf(fpath, "%s/%s", path, file);
-	return GetTextureFromFile(fpath, width, height);
 }
 irr::video::ITexture* ImageManager::GetTexture(int code, bool fit) {
 	int width = CARD_IMG_WIDTH;
@@ -340,11 +340,11 @@ irr::video::ITexture* ImageManager::GetTexture(int code, bool fit) {
 	auto tit = tMap[fit ? 1 : 0].find(code);
 	if(tit == tMap[fit ? 1 : 0].end()) {
 		char file[256];
-		sprintf(file, "pics/%d.png", code);
-		irr::video::ITexture* img = GetTextureExpansions(file, width, height);
+		sprintf(file, "expansions/pics/%d.png", code);
+		irr::video::ITexture* img = GetTextureFromFile(file, width, height);
 		if(img == NULL) {
-			sprintf(file, "pics/%d.jpg", code);
-			img = GetTextureExpansions(file, width, height);
+			sprintf(file, "expansions/pics/%d.jpg", code);
+			img = GetTextureFromFile(file, width, height);
 		}
 		if(img == NULL) {
 			sprintf(file, mainGame->GetLocaleDir("pics/%d.png"), code);
@@ -382,11 +382,11 @@ irr::video::ITexture* ImageManager::GetTextureThumb(int code) {
 		return GetTextureUnknown(width, height, 2);
 	if(tit == tThumb.end()) {
 		char file[256];
-		sprintf(file, "pics/thumbnail/%d.png", code);
-		irr::video::ITexture* img = GetTextureExpansions(file, width, height);
+		sprintf(file, "expansions/pics/thumbnail/%d.png", code);
+		irr::video::ITexture* img = GetTextureFromFile(file, width, height);
 		if(img == NULL) {
-			sprintf(file, "pics/thumbnail/%d.jpg", code);
-			img = GetTextureExpansions(file, width, height);
+			sprintf(file, "expansions/pics/thumbnail/%d.jpg", code);
+			img = GetTextureFromFile(file, width, height);
 		}
 		if(img == NULL) {
 			sprintf(file, mainGame->GetLocaleDir("pics/thumbnail/%d.png"), code);
@@ -405,11 +405,11 @@ irr::video::ITexture* ImageManager::GetTextureThumb(int code) {
 			img = GetTextureFromFile(file, width, height);
 		}
 		if(img == NULL && mainGame->gameConf.use_image_scale) {
-			sprintf(file, "pics/%d.png", code);
-			img = GetTextureExpansions(file, width, height);
+			sprintf(file, "expansions/pics/%d.png", code);
+			img = GetTextureFromFile(file, width, height);
 			if(img == NULL) {
-				sprintf(file, "pics/%d.jpg", code);
-				img = GetTextureExpansions(file, width, height);
+				sprintf(file, "expansions/pics/%d.jpg", code);
+				img = GetTextureFromFile(file, width, height);
 			}
 			if(img == NULL) {
 				sprintf(file, mainGame->GetLocaleDir("pics/%d.png"), code);
@@ -442,11 +442,11 @@ irr::video::ITexture* ImageManager::GetTextureField(int code) {
 	auto tit = tFields.find(code);
 	if(tit == tFields.end()) {
 		char file[256];
-		sprintf(file, "pics/field/%d.png", code);
-		irr::video::ITexture* img = GetTextureExpansions(file, 512 * mainGame->xScale, 512 * mainGame->yScale);
+		sprintf(file, "expansions/pics/field/%d.png", code);
+		irr::video::ITexture* img = GetTextureFromFile(file, 512 * mainGame->xScale, 512 * mainGame->yScale);
 		if(img == NULL) {
-			sprintf(file, "pics/field/%d.jpg", code);
-			img = GetTextureExpansions(file, 512 * mainGame->xScale, 512 * mainGame->yScale);
+			sprintf(file, "expansions/pics/field/%d.jpg", code);
+			img = GetTextureFromFile(file, 512 * mainGame->xScale, 512 * mainGame->yScale);
 		}
 		if(img == NULL) {
 			sprintf(file, "pics/field/%d.png", code);
