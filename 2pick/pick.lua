@@ -229,22 +229,22 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	
-	-- XXYYZZ Additional Picks
-	xyz_list={91998119,91998120,91998121}
-	for p=0,1 do
-		if Duel.IsPlayerNeedToPickDeck(p) then
-			local ng=Group.CreateGroup()
-			local card1=Duel.CreateToken(p,2111707)
-			local card2=Duel.CreateToken(p,25119460)
-			local card3=Duel.CreateToken(p,99724761)
-			local card4=Duel.CreateToken(p,xyz_list[math.random(#xyz_list)])
-			ng:AddCard(card1)
-			ng:AddCard(card2)
-			ng:AddCard(card3)
-			ng:AddCard(card4)
-			Duel.SendtoDeck(ng,nil,0,REASON_RULE)
-		end
-	end
+	-- -- XXYYZZ Additional Picks
+	-- xyz_list={91998119,91998120,91998121}
+	-- for p=0,1 do
+	-- 	if Duel.IsPlayerNeedToPickDeck(p) then
+	-- 		local ng=Group.CreateGroup()
+	-- 		local card1=Duel.CreateToken(p,2111707)
+	-- 		local card2=Duel.CreateToken(p,25119460)
+	-- 		local card3=Duel.CreateToken(p,99724761)
+	-- 		local card4=Duel.CreateToken(p,xyz_list[math.random(#xyz_list)])
+	-- 		ng:AddCard(card1)
+	-- 		ng:AddCard(card2)
+	-- 		ng:AddCard(card3)
+	-- 		ng:AddCard(card4)
+	-- 		Duel.SendtoDeck(ng,nil,0,REASON_RULE)
+	-- 	end
+	-- end
 	
 	Auxiliary.SaveDeck()
 	for p=0,1 do
@@ -272,8 +272,8 @@ function Auxiliary.Load2PickRule()
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
 
-	--EVENT XYZ Impact
-	Auxiliary.Load_EVENT_XYYZ_Impact()
+	--EVENT Metamorphosis
+	Auxiliary.Load_EVENT_Metamorphosis()
 end
 
 	--Skill_DrawSense_Rule
@@ -351,118 +351,183 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+--EVENT Metamorphosis
 
---EVENT_XYYZ_Impact
-
-function Auxiliary.Load_EVENT_XYYZ_Impact()
+function Auxiliary.Load_EVENT_Metamorphosis()
 	local e1=Effect.GlobalEffect()
-	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetCountLimit(1,46411259+EFFECT_COUNT_CODE_OATH)
 	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
-	e1:SetCode(EFFECT_SPSUMMON_PROC)
-	e1:SetRange(LOCATION_EXTRA)
-	e1:SetCondition(Auxiliary.XY_Condition)
-	e1:SetOperation(Auxiliary.XY_Operation)
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetCost(Auxiliary.EVENT_Metamorphosis_Cost)
+	e1:SetTarget(Auxiliary.EVENT_Metamorphosis_Target)
+	e1:SetOperation(Auxiliary.EVENT_Metamorphosis_Operation)
+	e1:SetLabel(0)
 	local e2=Effect.GlobalEffect()
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
 	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
-	e2:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
-	e2:SetTarget(Auxiliary.IsXYMoster)
+	e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+	e2:SetTarget(Auxiliary.EVENT_Metamorphosis_MonsterCheck)
 	e2:SetLabelObject(e1)
 	Duel.RegisterEffect(e2,0)
-	local e3=Effect.GlobalEffect()
-	e3:SetType(EFFECT_TYPE_FIELD)
-	e3:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
-	e3:SetCode(EFFECT_SPSUMMON_PROC)
-	e3:SetRange(LOCATION_EXTRA)
-	e3:SetCondition(Auxiliary.XYYZ_Condition)
-	e3:SetOperation(Auxiliary.XYYZ_Operation)
-	local e4=Effect.GlobalEffect()
-	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
-	e4:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
-	e4:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
-	e4:SetTarget(Auxiliary.IsXYYZMoster)
-	e4:SetLabelObject(e3)
-	Duel.RegisterEffect(e4,0)
+	return
 end
 
-function Auxiliary.IsXYMoster(e,c)
-	return c:IsCode(2111707) or c:IsCode(99724761) or c:IsCode(25119460)
+function Auxiliary.EVENT_Metamorphosis_MonsterCheck(e,c)
+	return c:IsType(TYPE_MONSTER)
 end
 
-function Auxiliary.IsXYYZMoster(e,c)
-	return c:IsCode(91998119)
+function Auxiliary.EVENT_Metamorphosis_Cost(e,tp,eg,ep,ev,re,r,rp,chk)
+		e:SetLabel(100)
+	if chk==0 then return true end
 end
 
-function Auxiliary.XY_ffilter(c,fc,sub,mg,sg)
-	return not c:IsType(TYPE_TOKEN)  and 
-	(not sg or not sg:IsExists(Card.IsFusionAttribute,2,c,c:GetFusionAttribute()))
+function Auxiliary.EVENT_Metamorphosis_Costfilter(c,e,tp)
+	return Duel.IsExistingMatchingCard(Auxiliary.EVENT_Metamorphosis_spfilter,tp,LOCATION_DECK,0,1,nil,c,e,tp)
 end
 
-function Auxiliary.XY_spfilter1(c,tp,fc)
-	return not c:IsType(TYPE_TOKEN) and Duel.IsPlayerCanRelease(tp,c)
-		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,c,tp,fc,c)
+function Auxiliary.EVENT_Metamorphosis_spfilter(c,tc,e,tp)
+	return c:GetOriginalAttribute()==tc:GetOriginalAttribute() and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 
-function Auxiliary.XY_spfilter2(c,tp,fc,mc)
-	local g=Group.FromCards(c,mc)
-	return not c:IsType(TYPE_TOKEN) and Duel.IsPlayerCanRelease(tp,c)  
-		and c:IsCanBeFusionMaterial(fc) and c:IsFusionAttribute(mc:GetFusionAttribute()) and Duel.GetLocationCountFromEx(tp,tp,g)>0
-end
-
-function Auxiliary.XY_Condition(e,c)
-	if c==nil then return true end
-	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
-end
-
-function Auxiliary.XY_Operation(e,tp,eg,ep,ev,re,r,rp,c)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
-	local g1=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,1,nil,tp,c)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
-	local g2=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,1,g1:GetFirst(),tp,c,g1:GetFirst())
-	g1:Merge(g2)
-	Duel.Release(g1,REASON_COST)
-end
-
-function Auxiliary.XYYZ_spcostfilter(c)
-	return c:IsAbleToRemoveAsCost() and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_FUSION)
-end
-
-function Auxiliary.XYYZ_spcost_selector(c,tp,g,sg,i)
-	sg:AddCard(c)
-	g:RemoveCard(c)
-	local flag=false
-	if i<2 then
-		flag=g:IsExists(Auxiliary.XYYZ_spcostfilter,1,nil,tp,g,sg,i+1)
-	else
-		flag=sg:FilterCount(Card.IsAttribute,nil,ATTRIBUTE_LIGHT)>0
-			and sg:FilterCount(Card.IsAttribute,nil,ATTRIBUTE_LIGHT)>0
+function Auxiliary.EVENT_Metamorphosis_Target(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		if e:GetLabel()~=100 then return false end
+		e:SetLabel(0)
+		return Duel.CheckReleaseGroup(tp,Auxiliary.EVENT_Metamorphosis_Costfilter,1,nil,e,tp)
 	end
-	sg:RemoveCard(c)
-	g:AddCard(c)
-	return flag
+	e:SetLabel(0)
+	local g=Duel.SelectReleaseGroup(tp,Auxiliary.EVENT_Metamorphosis_Costfilter,1,1,nil,e,tp)
+	Duel.Release(g,REASON_COST)
+	Duel.SetTargetCard(g)
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_DECK)
+	Duel.SetChainLimit(aux.FALSE)
 end
 
-function Auxiliary.XYYZ_Condition(e,c)
-	if c==nil then return true end
-	local tp=c:GetControler()
-	if Duel.GetLocationCountFromEx(tp)<=0 then return false end
-	local g=Duel.GetMatchingGroup(Auxiliary.XYYZ_spcostfilter,tp,LOCATION_GRAVE,0,nil)
-	local sg=Group.CreateGroup()
-	return g:IsExists(Auxiliary.XYYZ_spcost_selector,1,nil,tp,g,sg,1)
-end
-
-function Auxiliary.XYYZ_Operation(e,tp,eg,ep,ev,re,r,rp,c)
-	local g=Duel.GetMatchingGroup(Auxiliary.XYYZ_spcostfilter,tp,LOCATION_GRAVE,0,nil)
-	local sg=Group.CreateGroup()
-	for i=1,2 do
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-		local g1=g:FilterSelect(tp,Auxiliary.XYYZ_spcost_selector,1,1,nil,tp,g,sg,i)
-		sg:Merge(g1)
-		g:Sub(g1)
+function Auxiliary.EVENT_Metamorphosis_Operation(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local cg=Duel.GetMatchingGroup(Auxiliary.EVENT_Metamorphosis_spfilter,tp,LOCATION_DECK,0,nil,tc,e,tp)
+	if cg:GetCount()>0 then
+		local tg=cg:RandomSelect(1-tp,1)
+		Duel.SpecialSummon(tg,0,tp,tp,false,false,POS_FACEUP)
 	end
-	Duel.Remove(sg,POS_FACEUP,REASON_COST)
 end
+
+
+-- --EVENT_XYYZ_Impact
+
+-- function Auxiliary.Load_EVENT_XYYZ_Impact()
+-- 	local e1=Effect.GlobalEffect()
+-- 	e1:SetType(EFFECT_TYPE_FIELD)
+-- 	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+-- 	e1:SetCode(EFFECT_SPSUMMON_PROC)
+-- 	e1:SetRange(LOCATION_EXTRA)
+-- 	e1:SetCondition(Auxiliary.XY_Condition)
+-- 	e1:SetOperation(Auxiliary.XY_Operation)
+-- 	local e2=Effect.GlobalEffect()
+-- 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+-- 	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+-- 	e2:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+-- 	e2:SetTarget(Auxiliary.IsXYMoster)
+-- 	e2:SetLabelObject(e1)
+-- 	Duel.RegisterEffect(e2,0)
+-- 	local e3=Effect.GlobalEffect()
+-- 	e3:SetType(EFFECT_TYPE_FIELD)
+-- 	e3:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+-- 	e3:SetCode(EFFECT_SPSUMMON_PROC)
+-- 	e3:SetRange(LOCATION_EXTRA)
+-- 	e3:SetCondition(Auxiliary.XYYZ_Condition)
+-- 	e3:SetOperation(Auxiliary.XYYZ_Operation)
+-- 	local e4=Effect.GlobalEffect()
+-- 	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+-- 	e4:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+-- 	e4:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+-- 	e4:SetTarget(Auxiliary.IsXYYZMoster)
+-- 	e4:SetLabelObject(e3)
+-- 	Duel.RegisterEffect(e4,0)
+-- end
+
+-- function Auxiliary.IsXYMoster(e,c)
+-- 	return c:IsCode(2111707) or c:IsCode(99724761) or c:IsCode(25119460)
+-- end
+
+-- function Auxiliary.IsXYYZMoster(e,c)
+-- 	return c:IsCode(91998119)
+-- end
+
+-- function Auxiliary.XY_ffilter(c,fc,sub,mg,sg)
+-- 	return not c:IsType(TYPE_TOKEN)  and 
+-- 	(not sg or not sg:IsExists(Card.IsFusionAttribute,2,c,c:GetFusionAttribute()))
+-- end
+
+-- function Auxiliary.XY_spfilter1(c,tp,fc)
+-- 	return not c:IsType(TYPE_TOKEN) and Duel.IsPlayerCanRelease(tp,c)
+-- 		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,c,tp,fc,c)
+-- end
+
+-- function Auxiliary.XY_spfilter2(c,tp,fc,mc)
+-- 	local g=Group.FromCards(c,mc)
+-- 	return not c:IsType(TYPE_TOKEN) and Duel.IsPlayerCanRelease(tp,c)  
+-- 		and c:IsCanBeFusionMaterial(fc) and c:IsFusionAttribute(mc:GetFusionAttribute()) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+-- end
+
+-- function Auxiliary.XY_Condition(e,c)
+-- 	if c==nil then return true end
+-- 	local tp=c:GetControler()
+-- 	return Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+-- end
+
+-- function Auxiliary.XY_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+-- 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
+-- 	local g1=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,1,nil,tp,c)
+-- 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
+-- 	local g2=Duel.SelectMatchingCard(tp,Auxiliary.XY_spfilter2,tp,LOCATION_MZONE,0,1,1,g1:GetFirst(),tp,c,g1:GetFirst())
+-- 	g1:Merge(g2)
+-- 	Duel.Release(g1,REASON_COST)
+-- end
+
+-- function Auxiliary.XYYZ_spcostfilter(c)
+-- 	return c:IsAbleToRemoveAsCost() and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_FUSION)
+-- end
+
+-- function Auxiliary.XYYZ_spcost_selector(c,tp,g,sg,i)
+-- 	sg:AddCard(c)
+-- 	g:RemoveCard(c)
+-- 	local flag=false
+-- 	if i<2 then
+-- 		flag=g:IsExists(Auxiliary.XYYZ_spcostfilter,1,nil,tp,g,sg,i+1)
+-- 	else
+-- 		flag=sg:FilterCount(Card.IsAttribute,nil,ATTRIBUTE_LIGHT)>0
+-- 			and sg:FilterCount(Card.IsAttribute,nil,ATTRIBUTE_LIGHT)>0
+-- 	end
+-- 	sg:RemoveCard(c)
+-- 	g:AddCard(c)
+-- 	return flag
+-- end
+
+-- function Auxiliary.XYYZ_Condition(e,c)
+-- 	if c==nil then return true end
+-- 	local tp=c:GetControler()
+-- 	if Duel.GetLocationCountFromEx(tp)<=0 then return false end
+-- 	local g=Duel.GetMatchingGroup(Auxiliary.XYYZ_spcostfilter,tp,LOCATION_GRAVE,0,nil)
+-- 	local sg=Group.CreateGroup()
+-- 	return g:IsExists(Auxiliary.XYYZ_spcost_selector,1,nil,tp,g,sg,1)
+-- end
+
+-- function Auxiliary.XYYZ_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+-- 	local g=Duel.GetMatchingGroup(Auxiliary.XYYZ_spcostfilter,tp,LOCATION_GRAVE,0,nil)
+-- 	local sg=Group.CreateGroup()
+-- 	for i=1,2 do
+-- 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+-- 		local g1=g:FilterSelect(tp,Auxiliary.XYYZ_spcost_selector,1,1,nil,tp,g,sg,i)
+-- 		sg:Merge(g1)
+-- 		g:Sub(g1)
+-- 	end
+-- 	Duel.Remove(sg,POS_FACEUP,REASON_COST)
+-- end
 
 
 
