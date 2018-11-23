@@ -34,7 +34,7 @@ public:
 #ifdef YGOPRO_SERVER_MODE
 	virtual void TestCard(int code);
 #endif
-	
+
 	void DuelEndProc();
 	void WaitforResponse(int playerid);
 #ifdef YGOPRO_SERVER_MODE
@@ -54,6 +54,7 @@ public:
 	void RefreshSingle(int player, int location, int sequence, int flag = 0xf81fff);
 
 	static byte* ScriptReaderEx(const char* script_name, int* slen);
+	static byte* ScriptReaderExDirectry(const char* path, const char* script_name, int* slen, int pre_len = 1);
 	static int MessageHandler(long fduel, int type);
 	static void SingleTimer(evutil_socket_t fd, short events, void* arg);
 	//2pick
@@ -94,4 +95,3 @@ protected:
 }
 
 #endif //SINGLE_DUEL_H
-
