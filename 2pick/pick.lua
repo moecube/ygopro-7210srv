@@ -355,6 +355,7 @@ end
 
 function Auxiliary.Load_EVENT_Metamorphosis()
 	local e1=Effect.GlobalEffect()
+	e1:SetDescription(1127)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetCountLimit(1,46411259+EFFECT_COUNT_CODE_OATH)
 	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
