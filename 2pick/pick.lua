@@ -26,6 +26,13 @@ local xyz_plain={[0]={},[1]={}}
 local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
+local extra_fusion={1945387,3642509,12307878,13529466,16304628,19261966,20366274,22061412,33574806,40854197,41209827,48424886,48791583,49513164,69946549,74009824,74822425,75286621,85908279,94977269,45170821,30757127}
+local ectra_fusion_pick={[0]=extra_fusion,[1]=extra_fusion}
+local event_fusion_main={
+	[0]={86120751,86120751,86120751,74063034},
+	[1]={3717252,4939890,30328508,52551211},
+	[2]={40044918,40044918,64184058,8949584}
+}
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
@@ -100,18 +107,32 @@ function Auxiliary.SaveDeck()
 		Duel.SavePickDeck(p,g)
 	end
 end
-function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed)
+function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,packed)
 	if not Duel.IsPlayerNeedToPickDeck(p) then return end
 	local g1=Group.CreateGroup()
 	local g2=Group.CreateGroup()
 	local ag=Group.CreateGroup()
 	local plist=list[p]
+	local lastpack=-1
 	for _,g in ipairs({g1,g2}) do
 		--for i=1,count do
 		--	local code=plist[math.random(#plist)]
 		--	g:AddCard(Duel.CreateToken(p,code))
 		--end
 		local pick_count=0
+		if packed then
+			while true do
+				local thispack=math.random(#packed)
+				if thispack-=lastpack then
+					lastpack=thispack
+					for code in pairs(packed[thispack]) do
+						local card=Duel.CreateToken(p,code)
+						g:AddCard(card)
+						ag:AddCard(card)
+					end
+				end
+			end
+		end
 		while pick_count<count do
 			local code=plist[math.random(#plist)]
 			local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
@@ -207,6 +228,9 @@ function Auxiliary.StartPick(e)
 			Auxiliary.SinglePick(p,list,count,ex_list,ex_count,true)
 		end
 	end
+	for p=0,1 do
+		Auxiliary.SinglePick(p,list,0,ex_list,0,false,false,nil,event_fusion_main)
+	end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
@@ -227,6 +251,9 @@ function Auxiliary.StartPick(e)
 				Auxiliary.SinglePick(p,extra,2,nil,nil,false,false,extra_fixed)
 			end
 		end
+	end
+	for p=0,1 do
+		Auxiliary.SinglePick(p,ectra_fusion_pick,4,nil,nil,false)
 	end
 	
 	-- -- XXYYZZ Additional Picks
@@ -272,8 +299,8 @@ function Auxiliary.Load2PickRule()
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
 
-	--EVENT Metamorphosis
-	Auxiliary.Load_EVENT_Metamorphosis()
+	--Event Fusion
+	Auxiliary.Load_EVENT_ExtraFusion()
 end
 
 	--Skill_DrawSense_Rule
@@ -351,71 +378,1044 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+--EVENT ExtraFusion
+
+function Auxiliary.Load_EVENT_ExtraFusion()
+	-- elemental hero
+	local e011=Effect.GlobalEffect()
+	e011:SetType(EFFECT_TYPE_FIELD)
+	e011:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e011:SetCode(EFFECT_SPSUMMON_PROC)
+	e011:SetRange(LOCATION_EXTRA)
+	e011:SetCondition(Auxiliary.FireEH_Condition)
+	e011:SetOperation(Auxiliary.FireEH_Operation)
+	local e012=Effect.GlobalEffect()
+	e012:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e012:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e012:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e012:SetTarget(Auxiliary.IsFireEH)
+	e012:SetLabelObject(e011)
+	Duel.RegisterEffect(e012,0)
+	
+	local e021=Effect.GlobalEffect()
+	e021:SetType(EFFECT_TYPE_FIELD)
+	e021:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e021:SetCode(EFFECT_SPSUMMON_PROC)
+	e021:SetRange(LOCATION_EXTRA)
+	e021:SetCondition(Auxiliary.WindEH_Condition)
+	e021:SetOperation(Auxiliary.WindEH_Operation)
+	local e022=Effect.GlobalEffect()
+	e022:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e022:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e022:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e022:SetTarget(Auxiliary.IsWindEH)
+	e022:SetLabelObject(e021)
+	Duel.RegisterEffect(e022,0)
+	
+	local e031=Effect.GlobalEffect()
+	e031:SetType(EFFECT_TYPE_FIELD)
+	e031:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e031:SetCode(EFFECT_SPSUMMON_PROC)
+	e031:SetRange(LOCATION_EXTRA)
+	e031:SetCondition(Auxiliary.EarthEH_Condition)
+	e031:SetOperation(Auxiliary.EarthEH_Operation)
+	local e032=Effect.GlobalEffect()
+	e032:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e032:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e032:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e032:SetTarget(Auxiliary.IsEarthEH)
+	e032:SetLabelObject(e031)
+	Duel.RegisterEffect(e032,0)
+
+	local e041=Effect.GlobalEffect()
+	e041:SetType(EFFECT_TYPE_FIELD)
+	e041:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e041:SetCode(EFFECT_SPSUMMON_PROC)
+	e041:SetRange(LOCATION_EXTRA)
+	e041:SetCondition(Auxiliary.LightEH_Condition)
+	e041:SetOperation(Auxiliary.LightEH_Operation)
+	local e042=Effect.GlobalEffect()
+	e042:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e042:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e042:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e042:SetTarget(Auxiliary.IsLightEH)
+	e042:SetLabelObject(e041)
+	Duel.RegisterEffect(e042,0)
+	
+	local e051=Effect.GlobalEffect()
+	e051:SetType(EFFECT_TYPE_FIELD)
+	e051:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e051:SetCode(EFFECT_SPSUMMON_PROC)
+	e051:SetRange(LOCATION_EXTRA)
+	e051:SetCondition(Auxiliary.LightEH_Condition)
+	e051:SetOperation(Auxiliary.LightEH_Operation)
+	local e052=Effect.GlobalEffect()
+	e052:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e052:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e052:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e052:SetTarget(Auxiliary.IsLightEH)
+	e052:SetLabelObject(e051)
+	Duel.RegisterEffect(e052,0)
+	
+	local e061=Effect.GlobalEffect()
+	e061:SetType(EFFECT_TYPE_FIELD)
+	e061:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e061:SetCode(EFFECT_SPSUMMON_PROC)
+	e061:SetRange(LOCATION_EXTRA)
+	e061:SetCondition(Auxiliary.WaterEH_Condition)
+	e061:SetOperation(Auxiliary.WaterEH_Operation)
+	local e062=Effect.GlobalEffect()
+	e062:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e062:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e062:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e062:SetTarget(Auxiliary.IsWaterEH)
+	e062:SetLabelObject(e061)
+	Duel.RegisterEffect(e062,0)
+	-- shadoll
+	local e111=Effect.GlobalEffect()
+	e111:SetType(EFFECT_TYPE_FIELD)
+	e111:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e111:SetCode(EFFECT_SPSUMMON_PROC)
+	e111:SetRange(LOCATION_EXTRA)
+	e111:SetCondition(Auxiliary.FireShadoll_Condition)
+	e111:SetOperation(Auxiliary.FireShadoll_Operation)
+	local e112=Effect.GlobalEffect()
+	e112:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e112:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e112:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e112:SetTarget(Auxiliary.IsFireShadoll)
+	e112:SetLabelObject(e111)
+	Duel.RegisterEffect(e112,0)
+	
+	local e121=Effect.GlobalEffect()
+	e121:SetType(EFFECT_TYPE_FIELD)
+	e121:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e121:SetCode(EFFECT_SPSUMMON_PROC)
+	e121:SetRange(LOCATION_EXTRA)
+	e121:SetCondition(Auxiliary.WindShadoll_Condition)
+	e121:SetOperation(Auxiliary.WindShadoll_Operation)
+	local e122=Effect.GlobalEffect()
+	e122:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e122:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e122:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e122:SetTarget(Auxiliary.IsWindShadoll)
+	e122:SetLabelObject(e121)
+	Duel.RegisterEffect(e122,0)
+	
+	local e131=Effect.GlobalEffect()
+	e131:SetType(EFFECT_TYPE_FIELD)
+	e131:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e131:SetCode(EFFECT_SPSUMMON_PROC)
+	e131:SetRange(LOCATION_EXTRA)
+	e131:SetCondition(Auxiliary.EarthShadoll_Condition)
+	e131:SetOperation(Auxiliary.EarthShadoll_Operation)
+	local e132=Effect.GlobalEffect()
+	e132:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e132:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e132:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e132:SetTarget(Auxiliary.IsEarthShadoll)
+	e132:SetLabelObject(e131)
+	Duel.RegisterEffect(e132,0)
+
+	local e141=Effect.GlobalEffect()
+	e141:SetType(EFFECT_TYPE_FIELD)
+	e141:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e141:SetCode(EFFECT_SPSUMMON_PROC)
+	e141:SetRange(LOCATION_EXTRA)
+	e141:SetCondition(Auxiliary.LightShadoll_Condition)
+	e141:SetOperation(Auxiliary.LightShadoll_Operation)
+	local e142=Effect.GlobalEffect()
+	e142:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e142:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e142:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e142:SetTarget(Auxiliary.IsLightShadoll)
+	e142:SetLabelObject(e141)
+	Duel.RegisterEffect(e142,0)
+	
+	local e151=Effect.GlobalEffect()
+	e151:SetType(EFFECT_TYPE_FIELD)
+	e151:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e151:SetCode(EFFECT_SPSUMMON_PROC)
+	e151:SetRange(LOCATION_EXTRA)
+	e151:SetCondition(Auxiliary.LightShadoll_Condition)
+	e151:SetOperation(Auxiliary.LightShadoll_Operation)
+	local e152=Effect.GlobalEffect()
+	e152:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e152:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e152:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e152:SetTarget(Auxiliary.IsLightShadoll)
+	e152:SetLabelObject(e151)
+	Duel.RegisterEffect(e152,0)
+	
+	local e161=Effect.GlobalEffect()
+	e161:SetType(EFFECT_TYPE_FIELD)
+	e161:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e161:SetCode(EFFECT_SPSUMMON_PROC)
+	e161:SetRange(LOCATION_EXTRA)
+	e161:SetCondition(Auxiliary.WaterShadoll_Condition)
+	e161:SetOperation(Auxiliary.WaterShadoll_Operation)
+	local e162=Effect.GlobalEffect()
+	e162:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e162:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e162:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e162:SetTarget(Auxiliary.IsWaterShadoll)
+	e162:SetLabelObject(e161)
+	Duel.RegisterEffect(e162,0)
+	--invoker
+	local e211=Effect.GlobalEffect()
+	e211:SetType(EFFECT_TYPE_FIELD)
+	e211:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e211:SetCode(EFFECT_SPSUMMON_PROC)
+	e211:SetRange(LOCATION_EXTRA)
+	e211:SetCondition(Auxiliary.FireInvoke_Condition)
+	e211:SetOperation(Auxiliary.FireInvoke_Operation)
+	local e212=Effect.GlobalEffect()
+	e212:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e212:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e212:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e212:SetTarget(Auxiliary.IsFireInvoke)
+	e212:SetLabelObject(e211)
+	Duel.RegisterEffect(e212,0)
+	
+	local e221=Effect.GlobalEffect()
+	e221:SetType(EFFECT_TYPE_FIELD)
+	e221:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e221:SetCode(EFFECT_SPSUMMON_PROC)
+	e221:SetRange(LOCATION_EXTRA)
+	e221:SetCondition(Auxiliary.WindInvoke_Condition)
+	e221:SetOperation(Auxiliary.WindInvoke_Operation)
+	local e222=Effect.GlobalEffect()
+	e222:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e222:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e222:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e222:SetTarget(Auxiliary.IsWindInvoke)
+	e222:SetLabelObject(e221)
+	Duel.RegisterEffect(e222,0)
+	
+	local e231=Effect.GlobalEffect()
+	e231:SetType(EFFECT_TYPE_FIELD)
+	e231:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e231:SetCode(EFFECT_SPSUMMON_PROC)
+	e231:SetRange(LOCATION_EXTRA)
+	e231:SetCondition(Auxiliary.EarthInvoke_Condition)
+	e231:SetOperation(Auxiliary.EarthInvoke_Operation)
+	local e232=Effect.GlobalEffect()
+	e232:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e232:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e232:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e232:SetTarget(Auxiliary.IsEarthInvoke)
+	e232:SetLabelObject(e231)
+	Duel.RegisterEffect(e232,0)
+
+	local e241=Effect.GlobalEffect()
+	e241:SetType(EFFECT_TYPE_FIELD)
+	e241:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e241:SetCode(EFFECT_SPSUMMON_PROC)
+	e241:SetRange(LOCATION_EXTRA)
+	e241:SetCondition(Auxiliary.LightInvoke_Condition)
+	e241:SetOperation(Auxiliary.LightInvoke_Operation)
+	local e242=Effect.GlobalEffect()
+	e242:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e242:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e242:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e242:SetTarget(Auxiliary.IsLightInvoke)
+	e242:SetLabelObject(e241)
+	Duel.RegisterEffect(e242,0)
+	
+	local e251=Effect.GlobalEffect()
+	e251:SetType(EFFECT_TYPE_FIELD)
+	e251:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e251:SetCode(EFFECT_SPSUMMON_PROC)
+	e251:SetRange(LOCATION_EXTRA)
+	e251:SetCondition(Auxiliary.LightInvoke_Condition)
+	e251:SetOperation(Auxiliary.LightInvoke_Operation)
+	local e252=Effect.GlobalEffect()
+	e252:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e252:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e252:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e252:SetTarget(Auxiliary.IsLightInvoke)
+	e252:SetLabelObject(e251)
+	Duel.RegisterEffect(e252,0)
+	
+	local e261=Effect.GlobalEffect()
+	e261:SetType(EFFECT_TYPE_FIELD)
+	e261:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e261:SetCode(EFFECT_SPSUMMON_PROC)
+	e261:SetRange(LOCATION_EXTRA)
+	e261:SetCondition(Auxiliary.WaterInvoke_Condition)
+	e261:SetOperation(Auxiliary.WaterInvoke_Operation)
+	local e262=Effect.GlobalEffect()
+	e262:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e262:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e262:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e262:SetTarget(Auxiliary.IsWaterInvoke)
+	e262:SetLabelObject(e261)
+	Duel.RegisterEffect(e262,0)
+	--fusion dragon
+	local e311=Effect.GlobalEffect()
+	e311:SetType(EFFECT_TYPE_FIELD)
+	e311:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e311:SetCode(EFFECT_SPSUMMON_PROC)
+	e311:SetRange(LOCATION_EXTRA)
+	e311:SetCondition(Auxiliary.FusionDragon_Condition)
+	e311:SetOperation(Auxiliary.FusionDragon_Operation)
+	local e312=Effect.GlobalEffect()
+	e312:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e312:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e312:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e312:SetTarget(Auxiliary.IsFusionDragon)
+	e312:SetLabelObject(e311)
+	Duel.RegisterEffect(e312,0)
+	--phantom hero
+	local e321=Effect.GlobalEffect()
+	e321:SetType(EFFECT_TYPE_FIELD)
+	e321:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e321:SetCode(EFFECT_SPSUMMON_PROC)
+	e321:SetRange(LOCATION_EXTRA)
+	e321:SetCondition(Auxiliary.PhantomHero_Condition)
+	e321:SetOperation(Auxiliary.PhantomHero_Operation)
+	local e322=Effect.GlobalEffect()
+	e322:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e322:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e322:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e322:SetTarget(Auxiliary.IsPhantomHero)
+	e322:SetLabelObject(e321)
+	Duel.RegisterEffect(e322,0)
+	--pplant
+	local e331=Effect.GlobalEffect()
+	e331:SetType(EFFECT_TYPE_FIELD)
+	e331:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e331:SetCode(EFFECT_SPSUMMON_PROC)
+	e331:SetRange(LOCATION_EXTRA)
+	e331:SetCondition(Auxiliary.PPlant_Condition)
+	e331:SetOperation(Auxiliary.PPlant_Operation)
+	local e332=Effect.GlobalEffect()
+	e332:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e332:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e332:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e332:SetTarget(Auxiliary.IsPPlant)
+	e332:SetLabelObject(e331)
+	Duel.RegisterEffect(e332,0)
+	--DH
+	local e341=Effect.GlobalEffect()
+	e341:SetType(EFFECT_TYPE_FIELD)
+	e341:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e341:SetCode(EFFECT_SPSUMMON_PROC)
+	e341:SetRange(LOCATION_EXTRA)
+	e341:SetCondition(Auxiliary.DH_Condition)
+	e341:SetOperation(Auxiliary.DH_Operation)
+	local e342=Effect.GlobalEffect()
+	e342:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e342:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e342:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e342:SetTarget(Auxiliary.IsDH)
+	e342:SetLabelObject(e341)
+	Duel.RegisterEffect(e342,0)
+end
+
+function Auxiliary.IsFireEH(e,c)
+	return c:IsCode(1945387)
+end
+function Auxiliary.FireEH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x3008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.FireEH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.FireEH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.FireEH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.FireEH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.FireEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.FireEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.FireEH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsWindEH(e,c)
+	return c:IsCode(3642509)
+end
+function Auxiliary.WindEH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x3008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.WindEH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.WindEH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.WindEH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.WindEH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.WindEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.WindEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.WindEH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsEarthEH(e,c)
+	return c:IsCode(16304628)
+end
+function Auxiliary.EarthEH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x3008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.EarthEH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.EarthEH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.EarthEH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.EarthEH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.EarthEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.EarthEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.EarthEH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsLightEH(e,c)
+	return c:IsCode(22061412)
+end
+function Auxiliary.LightEH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x3008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.LightEH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.LightEH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.LightEH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.LightEH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.LightEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.LightEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.LightEH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsDarkEH(e,c)
+	return c:IsCode(33574806)
+end
+function Auxiliary.DarkEH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x3008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.DarkEH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.DarkEH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.DarkEH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.DarkEH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.DarkEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.DarkEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.DarkEH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsWaterEH(e,c)
+	return c:IsCode(40854197)
+end
+function Auxiliary.WaterEH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x3008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.WaterEH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.WaterEH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.WaterEH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.WaterEH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.WaterEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.WaterEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.WaterEH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsFireShadoll(e,c)
+	return c:IsCode(48424886)
+end
+function Auxiliary.FireShadoll_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x9d) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.FireShadoll_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.FireShadoll_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.FireShadoll_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.FireShadoll_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.FireShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.FireShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.FireShadoll_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsWindShadoll(e,c)
+	return c:IsCode(74009824)
+end
+function Auxiliary.WindShadoll_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x9d) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.WindShadoll_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.WindShadoll_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.WindShadoll_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.WindShadoll_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.WindShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.WindShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.WindShadoll_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsEarthShadoll(e,c)
+	return c:IsCode(74822425)
+end
+function Auxiliary.EarthShadoll_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x9d) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.EarthShadoll_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.EarthShadoll_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.EarthShadoll_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.EarthShadoll_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.EarthShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.EarthShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.EarthShadoll_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsLightShadoll(e,c)
+	return c:IsCode(20366274)
+end
+function Auxiliary.LightShadoll_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x9d) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.LightShadoll_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.LightShadoll_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.LightShadoll_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.LightShadoll_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.LightShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.LightShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.LightShadoll_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsDarkShadoll(e,c)
+	return c:IsCode(94977269)
+end
+function Auxiliary.DarkShadoll_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x9d) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.DarkShadoll_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.DarkShadoll_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.DarkShadoll_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.DarkShadoll_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.DarkShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.DarkShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.DarkShadoll_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsWaterShadoll(e,c)
+	return c:IsCode(19261966)
+end
+function Auxiliary.WaterShadoll_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x9d) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.WaterShadoll_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.WaterShadoll_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.WaterShadoll_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.WaterShadoll_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.WaterShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.WaterShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.WaterShadoll_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsFireInvoke(e,c)
+	return c:IsCode(12307878)
+end
+function Auxiliary.FireInvoke_spfilter1(c,tp,fc)
+	return c:IsFusionCode(86120751) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.FireInvoke_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.FireInvoke_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.FireInvoke_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.FireInvoke_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.FireInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.FireInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.FireInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsWindInvoke(e,c)
+	return c:IsCode(49513164)
+end
+function Auxiliary.WindInvoke_spfilter1(c,tp,fc)
+	return c:IsFusionCode(86120751) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.WindInvoke_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.WindInvoke_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.WindInvoke_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.WindInvoke_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.WindInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.WindInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.WindInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsEarthInvoke(e,c)
+	return c:IsCode(48791583)
+end
+function Auxiliary.EarthInvoke_spfilter1(c,tp,fc)
+	return c:IsFusionCode(86120751) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.EarthInvoke_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.EarthInvoke_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.EarthInvoke_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.EarthInvoke_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.EarthInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.EarthInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.EarthInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsLightInvoke(e,c)
+	return c:IsCode(75286621)
+end
+function Auxiliary.LightInvoke_spfilter1(c,tp,fc)
+	return c:IsFusionCode(86120751) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.LightInvoke_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.LightInvoke_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.LightInvoke_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.LightInvoke_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.LightInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.LightInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.LightInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsDarkInvoke(e,c)
+	return c:IsCode(13529466)
+end
+function Auxiliary.DarkInvoke_spfilter1(c,tp,fc)
+	return c:IsFusionCode(86120751) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.DarkInvoke_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.DarkInvoke_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.DarkInvoke_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.DarkInvoke_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.DarkInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.DarkInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.DarkInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsWaterInvoke(e,c)
+	return c:IsCode(12307878)
+end
+function Auxiliary.WaterInvoke_spfilter1(c,tp,fc)
+	return c:IsFusionCode(86120751) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.WaterInvoke_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.WaterInvoke_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.WaterInvoke_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.WaterInvoke_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.WaterInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.WaterInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.WaterInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsFusionDragon(e,c)
+	return c:IsCode(41209827)
+end
+function Auxiliary.FusionDragon_spfilter1(c,tp,fc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.FusionDragon_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.FusionDragon_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.FusionDragon_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.FusionDragon_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.FusionDragon_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.FusionDragon_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.FusionDragon_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsPhantomHero(e,c)
+	return c:IsCode(45170821)
+end
+function Auxiliary.PhantomHero_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x8) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.PhantomHero_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.PhantomHero_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionSetCard(0x8) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.PhantomHero_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.PhantomHero_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.PhantomHero_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.PhantomHero_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.PhantomHero_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsPPlant(e,c)
+	return c:IsCode(69946549)
+end
+function Auxiliary.PPlant_spfilter1(c,tp,fc)
+	return c:IsFusionType(TYPE_FUSION) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.PPlant_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.PPlant_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.PPlant_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.PPlant_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.PPlant_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.PPlant_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.PPlant_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsDH(e,c)
+	return c:IsCode(30757127)
+end
+function Auxiliary.DH_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0xc008) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.DH_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.DH_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsFusionType(TYPE_EFFECT) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.DH_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.DH_cfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+end
+function Auxiliary.DH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.DH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.DH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
 --EVENT Metamorphosis
 
-function Auxiliary.Load_EVENT_Metamorphosis()
-	local e1=Effect.GlobalEffect()
-	e1:SetDescription(1127)
-	e1:SetType(EFFECT_TYPE_IGNITION)
-	e1:SetCountLimit(1,46411259+EFFECT_COUNT_CODE_OATH)
-	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
-	e1:SetRange(LOCATION_MZONE)
-	e1:SetCost(Auxiliary.EVENT_Metamorphosis_Cost)
-	e1:SetTarget(Auxiliary.EVENT_Metamorphosis_Target)
-	e1:SetOperation(Auxiliary.EVENT_Metamorphosis_Operation)
-	e1:SetLabel(0)
-	local e2=Effect.GlobalEffect()
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
-	e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
-	e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
-	e2:SetTarget(Auxiliary.EVENT_Metamorphosis_MonsterCheck)
-	e2:SetLabelObject(e1)
-	Duel.RegisterEffect(e2,0)
-	return
-end
+-- function Auxiliary.Load_EVENT_Metamorphosis()
+	-- local e1=Effect.GlobalEffect()
+	-- e1:SetDescription(1127)
+	-- e1:SetType(EFFECT_TYPE_IGNITION)
+	-- e1:SetCountLimit(1,46411259+EFFECT_COUNT_CODE_OATH)
+	-- e1:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	-- e1:SetRange(LOCATION_MZONE)
+	-- e1:SetCost(Auxiliary.EVENT_Metamorphosis_Cost)
+	-- e1:SetTarget(Auxiliary.EVENT_Metamorphosis_Target)
+	-- e1:SetOperation(Auxiliary.EVENT_Metamorphosis_Operation)
+	-- e1:SetLabel(0)
+	-- local e2=Effect.GlobalEffect()
+	-- e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	-- e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	-- e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+	-- e2:SetTarget(Auxiliary.EVENT_Metamorphosis_MonsterCheck)
+	-- e2:SetLabelObject(e1)
+	-- Duel.RegisterEffect(e2,0)
+	-- return
+-- end
 
-function Auxiliary.EVENT_Metamorphosis_MonsterCheck(e,c)
-	return c:IsType(TYPE_MONSTER)
-end
+-- function Auxiliary.EVENT_Metamorphosis_MonsterCheck(e,c)
+	-- return c:IsType(TYPE_MONSTER)
+-- end
 
-function Auxiliary.EVENT_Metamorphosis_Cost(e,tp,eg,ep,ev,re,r,rp,chk)
-		e:SetLabel(100)
-	if chk==0 then return true end
-end
+-- function Auxiliary.EVENT_Metamorphosis_Cost(e,tp,eg,ep,ev,re,r,rp,chk)
+		-- e:SetLabel(100)
+	-- if chk==0 then return true end
+-- end
 
-function Auxiliary.EVENT_Metamorphosis_Costfilter(c,e,tp)
-	return Duel.IsExistingMatchingCard(Auxiliary.EVENT_Metamorphosis_spfilter,tp,LOCATION_DECK,0,1,nil,c,e,tp)
-end
+-- function Auxiliary.EVENT_Metamorphosis_Costfilter(c,e,tp)
+	-- return Duel.IsExistingMatchingCard(Auxiliary.EVENT_Metamorphosis_spfilter,tp,LOCATION_DECK,0,1,nil,c,e,tp)
+-- end
 
-function Auxiliary.EVENT_Metamorphosis_spfilter(c,tc,e,tp)
-	return c:GetOriginalAttribute()==tc:GetOriginalAttribute() and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-end
+-- function Auxiliary.EVENT_Metamorphosis_spfilter(c,tc,e,tp)
+	-- return c:GetOriginalAttribute()==tc:GetOriginalAttribute() and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+-- end
 
-function Auxiliary.EVENT_Metamorphosis_Target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then
-		if e:GetLabel()~=100 then return false end
-		e:SetLabel(0)
-		return Duel.CheckReleaseGroup(tp,Auxiliary.EVENT_Metamorphosis_Costfilter,1,nil,e,tp)
-	end
-	e:SetLabel(0)
-	local g=Duel.SelectReleaseGroup(tp,Auxiliary.EVENT_Metamorphosis_Costfilter,1,1,nil,e,tp)
-	Duel.Release(g,REASON_COST)
-	Duel.SetTargetCard(g)
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_DECK)
-	Duel.SetChainLimit(aux.FALSE)
-end
+-- function Auxiliary.EVENT_Metamorphosis_Target(e,tp,eg,ep,ev,re,r,rp,chk)
+	-- if chk==0 then
+		-- if e:GetLabel()~=100 then return false end
+		-- e:SetLabel(0)
+		-- return Duel.CheckReleaseGroup(tp,Auxiliary.EVENT_Metamorphosis_Costfilter,1,nil,e,tp)
+	-- end
+	-- e:SetLabel(0)
+	-- local g=Duel.SelectReleaseGroup(tp,Auxiliary.EVENT_Metamorphosis_Costfilter,1,1,nil,e,tp)
+	-- Duel.Release(g,REASON_COST)
+	-- Duel.SetTargetCard(g)
+	-- Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_DECK)
+	-- Duel.SetChainLimit(aux.FALSE)
+-- end
 
-function Auxiliary.EVENT_Metamorphosis_Operation(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
-	local c=e:GetHandler()
-	local tc=Duel.GetFirstTarget()
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local cg=Duel.GetMatchingGroup(Auxiliary.EVENT_Metamorphosis_spfilter,tp,LOCATION_DECK,0,nil,tc,e,tp)
-	if cg:GetCount()>0 then
-		local tg=cg:RandomSelect(1-tp,1)
-		Duel.SpecialSummon(tg,0,tp,tp,false,false,POS_FACEUP)
-	end
-end
+-- function Auxiliary.EVENT_Metamorphosis_Operation(e,tp,eg,ep,ev,re,r,rp)
+	-- if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	-- local c=e:GetHandler()
+	-- local tc=Duel.GetFirstTarget()
+	-- Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	-- local cg=Duel.GetMatchingGroup(Auxiliary.EVENT_Metamorphosis_spfilter,tp,LOCATION_DECK,0,nil,tc,e,tp)
+	-- if cg:GetCount()>0 then
+		-- local tg=cg:RandomSelect(1-tp,1)
+		-- Duel.SpecialSummon(tg,0,tp,tp,false,false,POS_FACEUP)
+	-- end
+-- end
 
 
 -- --EVENT_XYYZ_Impact
