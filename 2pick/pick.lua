@@ -1290,12 +1290,12 @@ function Auxiliary.IsFusionDragon(e,c)
 	return c:IsCode(41209827)
 end
 function Auxiliary.FusionDragon_spfilter1(c,tp,fc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return not c:IsType(TYPE_TOKEN) and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.FusionDragon_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
 end
 function Auxiliary.FusionDragon_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return not c:IsType(TYPE_TOKEN) and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.FusionDragon_Condition(e,c)
