@@ -229,6 +229,7 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	for p=0,1 do
+		local list=main
 		Auxiliary.SinglePick(p,list,0,nil,nil,false,false,nil,event_fusion_main)
 	end
 	for tp,list in pairs(extra_sp) do
