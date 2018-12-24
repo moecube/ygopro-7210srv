@@ -730,7 +730,7 @@ end
 function Auxiliary.FireEH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.FireEH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.FireEH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.FireEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.FireEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -759,7 +759,7 @@ end
 function Auxiliary.WindEH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.WindEH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.WindEH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.WindEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.WindEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -788,7 +788,7 @@ end
 function Auxiliary.EarthEH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.EarthEH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.EarthEH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.EarthEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.EarthEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -817,7 +817,7 @@ end
 function Auxiliary.LightEH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.LightEH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.LightEH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.LightEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.LightEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -846,7 +846,7 @@ end
 function Auxiliary.DarkEH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.DarkEH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.DarkEH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.DarkEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.DarkEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -875,7 +875,7 @@ end
 function Auxiliary.WaterEH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.WaterEH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.WaterEH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.WaterEH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.WaterEH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -904,7 +904,7 @@ end
 function Auxiliary.FireShadoll_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.FireShadoll_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.FireShadoll_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.FireShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.FireShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -933,7 +933,7 @@ end
 function Auxiliary.WindShadoll_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.WindShadoll_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.WindShadoll_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.WindShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.WindShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -962,7 +962,7 @@ end
 function Auxiliary.EarthShadoll_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.EarthShadoll_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.EarthShadoll_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.EarthShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.EarthShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -991,7 +991,7 @@ end
 function Auxiliary.LightShadoll_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.LightShadoll_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.LightShadoll_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.LightShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.LightShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1020,7 +1020,7 @@ end
 function Auxiliary.DarkShadoll_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.DarkShadoll_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.DarkShadoll_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.DarkShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.DarkShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1049,7 +1049,7 @@ end
 function Auxiliary.WaterShadoll_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.WaterShadoll_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.WaterShadoll_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.WaterShadoll_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.WaterShadoll_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1078,7 +1078,7 @@ end
 function Auxiliary.FireInvoke_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.FireInvoke_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.FireInvoke_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.FireInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.FireInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1107,7 +1107,7 @@ end
 function Auxiliary.WindInvoke_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.WindInvoke_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.WindInvoke_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.WindInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.WindInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1136,7 +1136,7 @@ end
 function Auxiliary.EarthInvoke_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.EarthInvoke_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.EarthInvoke_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.EarthInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.EarthInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1165,7 +1165,7 @@ end
 function Auxiliary.LightInvoke_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.LightInvoke_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.LightInvoke_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.LightInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.LightInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1194,7 +1194,7 @@ end
 function Auxiliary.DarkInvoke_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.DarkInvoke_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.DarkInvoke_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.DarkInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.DarkInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1223,7 +1223,7 @@ end
 function Auxiliary.WaterInvoke_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.WaterInvoke_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.WaterInvoke_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.WaterInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.WaterInvoke_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1252,7 +1252,7 @@ end
 function Auxiliary.FusionDragon_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.FusionDragon_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.FusionDragon_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.FusionDragon_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.FusionDragon_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1281,7 +1281,7 @@ end
 function Auxiliary.PhantomHero_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.PhantomHero_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.PhantomHero_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.PhantomHero_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.PhantomHero_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1310,7 +1310,7 @@ end
 function Auxiliary.PPlant_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.PPlant_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.PPlant_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.PPlant_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.PPlant_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1339,7 +1339,7 @@ end
 function Auxiliary.DH_Condition(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.IsExistingMatchingCard(Auxiliary.DH_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+	return Duel.IsExistingMatchingCard(Auxiliary.DH_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 end
 function Auxiliary.DH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	local g1=Duel.GetMatchingGroup(Auxiliary.DH_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
@@ -1480,7 +1480,7 @@ end
 -- function Auxiliary.XY_Condition(e,c)
 -- 	if c==nil then return true end
 -- 	local tp=c:GetControler()
--- 	return Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,0,1,nil,tp,c)
+-- 	return Duel.IsExistingMatchingCard(Auxiliary.XY_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
 -- end
 
 -- function Auxiliary.XY_Operation(e,tp,eg,ep,ev,re,r,rp,c)
