@@ -26,7 +26,12 @@ local xyz_plain={[0]={},[1]={}}
 local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
-local extra_fusion={1945387,3642509,12307878,13529466,16304628,19261966,20366274,22061412,33574806,40854197,41209827,48424886,48791583,49513164,69946549,74009824,74822425,75286621,85908279,94977269,45170821,30757127}
+local extra_fusion={
+	1945387,3642509,12307878,13529466,16304628,19261966,
+	20366274,22061412,33574806,40854197,41209827,48424886,
+	48791583,49513164,69946549,74009824,74822425,75286621,
+	85908279,94977269,45170821,30757127,11270236
+}
 local ectra_fusion_pick={[0]=extra_fusion,[1]=extra_fusion}
 local event_fusion_main={
 	[1]={86120751,86120751,86120751,74063034},
@@ -449,7 +454,7 @@ function Auxiliary.Load_EVENT_ExtraFusion()
 	e051:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
 	e051:SetCode(EFFECT_SPSUMMON_PROC)
 	e051:SetRange(LOCATION_EXTRA)
-	e051:SetCondition(Auxiliary.DarkEH_ConditionEH_Condition)
+	e051:SetCondition(Auxiliary.DarkEH_Condition)
 	e051:SetOperation(Auxiliary.DarkEH_Operation)
 	local e052=Effect.GlobalEffect()
 	e052:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
@@ -653,6 +658,21 @@ function Auxiliary.Load_EVENT_ExtraFusion()
 	e262:SetTarget(Auxiliary.IsWaterInvoke)
 	e262:SetLabelObject(e261)
 	Duel.RegisterEffect(e262,0)
+	
+	local e271=Effect.GlobalEffect()
+	e271:SetType(EFFECT_TYPE_FIELD)
+	e271:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e271:SetCode(EFFECT_SPSUMMON_PROC)
+	e271:SetRange(LOCATION_EXTRA)
+	e271:SetCondition(Auxiliary.InvokeBoss_Condition)
+	e271:SetOperation(Auxiliary.InvokeBoss_Operation)
+	local e272=Effect.GlobalEffect()
+	e272:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e272:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e272:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e272:SetTarget(Auxiliary.IsInvokeBoss)
+	e272:SetLabelObject(e271)
+	Duel.RegisterEffect(e272,0)
 	--fusion dragon
 	local e311=Effect.GlobalEffect()
 	e311:SetType(EFFECT_TYPE_FIELD)
@@ -1230,6 +1250,35 @@ function Auxiliary.WaterInvoke_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local sg=g1:Select(tp,1,1,nil)
 	local g2=Duel.GetMatchingGroup(Auxiliary.WaterInvoke_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsInvokeBoss(e,c)
+	return c:IsCode(11270236)
+end
+function Auxiliary.InvokeBoss_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0xf4) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.InvokeBoss_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.InvokeBoss_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:GetSummonLocation()==LOCATION_EXTRA and c:IsAbleToGraveAsCost()
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.InvokeBoss_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.InvokeBoss_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
+end
+function Auxiliary.InvokeBoss_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.InvokeBoss_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.InvokeBoss_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,sg:GetFirst())
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local c2=g2:Select(tp,1,1,sg:GetFirst())
 	sg:Merge(c2)
