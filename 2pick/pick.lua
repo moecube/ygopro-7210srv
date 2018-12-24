@@ -123,7 +123,7 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 		if packed then
 			while true do
 				local thispack=math.random(#packed)
-				if thispack-=lastpack then
+				if thispack~=lastpack then
 					lastpack=thispack
 					for code in pairs(packed[thispack]) do
 						local card=Duel.CreateToken(p,code)
@@ -229,7 +229,7 @@ function Auxiliary.StartPick(e)
 		end
 	end
 	for p=0,1 do
-		Auxiliary.SinglePick(p,list,0,ex_list,0,false,false,nil,event_fusion_main)
+		Auxiliary.SinglePick(p,list,0,nil,nil,false,false,nil,event_fusion_main)
 	end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
