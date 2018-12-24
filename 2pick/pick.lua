@@ -125,11 +125,12 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 				local thispack=math.random(#packed)
 				if thispack~=lastpack then
 					lastpack=thispack
-					for code in pairs(packed[thispack]) do
+					for _,code in ipairs(packed[thispack]) do
 						local card=Duel.CreateToken(p,code)
 						g:AddCard(card)
 						ag:AddCard(card)
 					end
+					break
 				end
 			end
 		end
