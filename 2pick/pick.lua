@@ -36,7 +36,8 @@ local ectra_fusion_pick={[0]=extra_fusion,[1]=extra_fusion}
 local event_fusion_main={
 	[1]={86120751,86120751,86120751,74063034},
 	[2]={3717252,4939890,30328508,52551211},
-	[3]={40044918,40044918,64184058,8949584}
+	[3]={40044918,40044918,64184058,8949584},
+	[4]={35272499,52792430,89181134,7161742}
 }
 
 function Auxiliary.SplitData(inputstr)
@@ -733,6 +734,36 @@ function Auxiliary.Load_EVENT_ExtraFusion()
 	e342:SetTarget(Auxiliary.IsDH)
 	e342:SetLabelObject(e341)
 	Duel.RegisterEffect(e342,0)
+	--Greedy vemon
+	local e351=Effect.GlobalEffect()
+	e351:SetType(EFFECT_TYPE_FIELD)
+	e351:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e351:SetCode(EFFECT_SPSUMMON_PROC)
+	e351:SetRange(LOCATION_EXTRA)
+	e351:SetCondition(Auxiliary.GVenom_Condition)
+	e351:SetOperation(Auxiliary.GVenom_Operation)
+	local e352=Effect.GlobalEffect()
+	e352:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e352:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e352:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e352:SetTarget(Auxiliary.IsGVenom)
+	e352:SetLabelObject(e351)
+	Duel.RegisterEffect(e352,0)
+	--Chimera
+	local e361=Effect.GlobalEffect()
+	e361:SetType(EFFECT_TYPE_FIELD)
+	e361:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_IGNORE_IMMUNE)
+	e361:SetCode(EFFECT_SPSUMMON_PROC)
+	e361:SetRange(LOCATION_EXTRA)
+	e361:SetCondition(Auxiliary.Chimera_Condition)
+	e361:SetOperation(Auxiliary.Chimera_Operation)
+	local e362=Effect.GlobalEffect()
+	e362:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e362:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+	e362:SetTargetRange(LOCATION_EXTRA,LOCATION_EXTRA)
+	e362:SetTarget(Auxiliary.IsChimera)
+	e362:SetLabelObject(e361)
+	Duel.RegisterEffect(e362,0)
 end
 
 function Auxiliary.IsFireEH(e,c)
@@ -1395,6 +1426,64 @@ function Auxiliary.DH_Operation(e,tp,eg,ep,ev,re,r,rp,c)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local sg=g1:Select(tp,1,1,nil)
 	local g2=Duel.GetMatchingGroup(Auxiliary.DH_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,c,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsGVenom(e,c)
+	return c:IsCode(51570882)
+end
+function Auxiliary.GVenom_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x10f3) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.GVenom_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.GVenom_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:GetOriginalLevel()>=8 and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.GVenom_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.GVenom_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
+end
+function Auxiliary.GVenom_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.GVenom_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp,c)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.GVenom_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,c,sg:GetFirst())
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local c2=g2:Select(tp,1,1,sg:GetFirst())
+	sg:Merge(c2)
+	Duel.SendtoGrave(sg,REASON_COST)
+	c:CompleteProcedure()
+end
+
+function Auxiliary.IsChimera(e,c)
+	return c:IsCode(25586143)
+end
+function Auxiliary.Chimera_spfilter1(c,tp,fc)
+	return c:IsFusionSetCard(0x10f3) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+		and c:IsCanBeFusionMaterial(fc) and Duel.IsExistingMatchingCard(Auxiliary.Chimera_spfilter2,tp,LOCATION_MZONE,LOCATION_MZONE,1,c,tp,fc,c)
+end
+function Auxiliary.Chimera_spfilter2(c,tp,fc,mc)
+	local g=Group.FromCards(c,mc)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
+end
+function Auxiliary.Chimera_Condition(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.IsExistingMatchingCard(Auxiliary.Chimera_spfilter1,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,tp,c)
+end
+function Auxiliary.Chimera_Operation(e,tp,eg,ep,ev,re,r,rp,c)
+	local g1=Duel.GetMatchingGroup(Auxiliary.Chimera_spfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp,c)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sg=g1:Select(tp,1,1,nil)
+	local g2=Duel.GetMatchingGroup(Auxiliary.Chimera_spfilter2,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,sg:GetFirst(),tp,c,sg:GetFirst())
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local c2=g2:Select(tp,1,1,sg:GetFirst())
 	sg:Merge(c2)
