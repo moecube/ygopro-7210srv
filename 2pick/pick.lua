@@ -775,7 +775,7 @@ function Auxiliary.FireEH_spfilter1(c,tp,fc)
 end
 function Auxiliary.FireEH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.FireEH_Condition(e,c)
@@ -804,7 +804,7 @@ function Auxiliary.WindEH_spfilter1(c,tp,fc)
 end
 function Auxiliary.WindEH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.WindEH_Condition(e,c)
@@ -833,7 +833,7 @@ function Auxiliary.EarthEH_spfilter1(c,tp,fc)
 end
 function Auxiliary.EarthEH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.EarthEH_Condition(e,c)
@@ -862,7 +862,7 @@ function Auxiliary.LightEH_spfilter1(c,tp,fc)
 end
 function Auxiliary.LightEH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.LightEH_Condition(e,c)
@@ -891,7 +891,7 @@ function Auxiliary.DarkEH_spfilter1(c,tp,fc)
 end
 function Auxiliary.DarkEH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.DarkEH_Condition(e,c)
@@ -920,7 +920,7 @@ function Auxiliary.WaterEH_spfilter1(c,tp,fc)
 end
 function Auxiliary.WaterEH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.WaterEH_Condition(e,c)
@@ -949,7 +949,7 @@ function Auxiliary.FireShadoll_spfilter1(c,tp,fc)
 end
 function Auxiliary.FireShadoll_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.FireShadoll_Condition(e,c)
@@ -978,7 +978,7 @@ function Auxiliary.WindShadoll_spfilter1(c,tp,fc)
 end
 function Auxiliary.WindShadoll_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.WindShadoll_Condition(e,c)
@@ -1007,7 +1007,7 @@ function Auxiliary.EarthShadoll_spfilter1(c,tp,fc)
 end
 function Auxiliary.EarthShadoll_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.EarthShadoll_Condition(e,c)
@@ -1036,7 +1036,7 @@ function Auxiliary.LightShadoll_spfilter1(c,tp,fc)
 end
 function Auxiliary.LightShadoll_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.LightShadoll_Condition(e,c)
@@ -1065,7 +1065,7 @@ function Auxiliary.DarkShadoll_spfilter1(c,tp,fc)
 end
 function Auxiliary.DarkShadoll_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.DarkShadoll_Condition(e,c)
@@ -1094,7 +1094,7 @@ function Auxiliary.WaterShadoll_spfilter1(c,tp,fc)
 end
 function Auxiliary.WaterShadoll_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.WaterShadoll_Condition(e,c)
@@ -1123,7 +1123,7 @@ function Auxiliary.FireInvoke_spfilter1(c,tp,fc)
 end
 function Auxiliary.FireInvoke_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.FireInvoke_Condition(e,c)
@@ -1152,7 +1152,7 @@ function Auxiliary.WindInvoke_spfilter1(c,tp,fc)
 end
 function Auxiliary.WindInvoke_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_WIND) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.WindInvoke_Condition(e,c)
@@ -1181,7 +1181,7 @@ function Auxiliary.EarthInvoke_spfilter1(c,tp,fc)
 end
 function Auxiliary.EarthInvoke_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_EARTH) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.EarthInvoke_Condition(e,c)
@@ -1210,7 +1210,7 @@ function Auxiliary.LightInvoke_spfilter1(c,tp,fc)
 end
 function Auxiliary.LightInvoke_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.LightInvoke_Condition(e,c)
@@ -1239,7 +1239,7 @@ function Auxiliary.DarkInvoke_spfilter1(c,tp,fc)
 end
 function Auxiliary.DarkInvoke_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.DarkInvoke_Condition(e,c)
@@ -1268,7 +1268,7 @@ function Auxiliary.WaterInvoke_spfilter1(c,tp,fc)
 end
 function Auxiliary.WaterInvoke_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.WaterInvoke_Condition(e,c)
@@ -1297,7 +1297,7 @@ function Auxiliary.InvokeBoss_spfilter1(c,tp,fc)
 end
 function Auxiliary.InvokeBoss_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:GetSummonLocation()==LOCATION_EXTRA and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:GetSummonLocation()==LOCATION_EXTRA and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.InvokeBoss_Condition(e,c)
@@ -1326,7 +1326,7 @@ function Auxiliary.FusionDragon_spfilter1(c,tp,fc)
 end
 function Auxiliary.FusionDragon_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return not c:IsType(TYPE_TOKEN) and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return not c:IsType(TYPE_TOKEN) and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.FusionDragon_Condition(e,c)
@@ -1355,7 +1355,7 @@ function Auxiliary.PhantomHero_spfilter1(c,tp,fc)
 end
 function Auxiliary.PhantomHero_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionSetCard(0x8) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionSetCard(0x8) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.PhantomHero_Condition(e,c)
@@ -1384,7 +1384,7 @@ function Auxiliary.PPlant_spfilter1(c,tp,fc)
 end
 function Auxiliary.PPlant_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.PPlant_Condition(e,c)
@@ -1413,7 +1413,7 @@ function Auxiliary.DH_spfilter1(c,tp,fc)
 end
 function Auxiliary.DH_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsFusionType(TYPE_EFFECT) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsFusionType(TYPE_EFFECT) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.DH_Condition(e,c)
@@ -1442,7 +1442,7 @@ function Auxiliary.GVenom_spfilter1(c,tp,fc)
 end
 function Auxiliary.GVenom_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:GetOriginalLevel()>=8 and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:GetOriginalLevel()>=8 and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.GVenom_Condition(e,c)
@@ -1471,7 +1471,7 @@ function Auxiliary.Chimera_spfilter1(c,tp,fc)
 end
 function Auxiliary.Chimera_spfilter2(c,tp,fc,mc)
 	local g=Group.FromCards(c,mc)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsAbleToGraveAsCost() and (c:IsFaceup() or c:IsControler(tp))
 		and c:IsCanBeFusionMaterial(fc) and Duel.GetLocationCountFromEx(tp,tp,g)>0
 end
 function Auxiliary.Chimera_Condition(e,c)
