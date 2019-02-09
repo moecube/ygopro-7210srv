@@ -190,6 +190,75 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 		Duel.SendtoDeck(g3,nil,0,REASON_RULE)
 	end
 end
+function Auxiliary.ArbitraryPick(p,count,list,list_count,ex_list,ex_count,copy,lv_diff,fixed)
+	if not Duel.IsPlayerNeedToPickDeck(p) then return end
+	local ag=Group.CreateGroup()
+	local pg=Group.CreateGroup()
+	local eg=Group.CreateGroup()
+	local plist=list[p]
+	local pick_count=0
+	while pick_count<list_count do
+		local code=plist[math.random(#plist)]
+		local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
+		if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and pg:IsExists(Card.IsLevel,1,nil,lv)) then
+			local card=Duel.CreateToken(p,code)
+			ag:AddCard(card)
+			pg:AddCard(card)
+			pick_count=pick_count+1
+		end
+	end
+	if ex_list and ex_count then
+		local ex_plist=ex_list[p]
+		local ex_pick_count=0
+		while ex_pick_count<ex_count do
+			local code=ex_plist[math.random(#ex_plist)]
+			local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
+			if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and eg:IsExists(Card.IsLevel,1,nil,lv)) then
+				local card=Duel.CreateToken(p,code)
+				ag:AddCard(card)
+				eg:AddCard(card)
+				ex_pick_count=ex_pick_count+1
+			end
+		end
+	end
+	if fixed then
+		for _,code in ipairs(fixed) do
+			local card=Duel.CreateToken(p,code)
+			ag:AddCard(card)
+		end
+	end
+	Duel.SendtoDeck(ag,nil,0,REASON_RULE)
+	Duel.ResetTimeLimit(p,90)
+	
+	local tg=Group.CreateGroup()
+	local rg=ag
+	while true do
+		local finish=tg:GetCount()==count
+		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
+		local sc=rg:SelectUnselect(tg,p,finish,false,count,count)
+		if not sc then break end
+		if tg:IsContains(sc) then
+			tg:RemoveCard(sc)
+			rg:AddCard(sc)
+		else
+			tg:AddCard(sc)
+			rg:RemoveCard(sc)
+		end
+	end
+	
+	if tg:GetFirst():IsLocation(LOCATION_DECK) then
+		Duel.ConfirmCards(p,tg)
+	end
+	Duel.Exile(rg,REASON_RULE)
+	if copy then
+		local g3=Group.CreateGroup()
+		for nc in aux.Next(tg) do
+			local copy_code=nc:GetOriginalCode()
+			g3:AddCard(Duel.CreateToken(p,copy_code))
+		end
+		Duel.SendtoDeck(g3,nil,0,REASON_RULE)
+	end
+end
 function Auxiliary.StartPick(e)
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
