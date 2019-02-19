@@ -323,7 +323,7 @@ function Auxiliary.StartPick(e)
 			for p=0,1 do
 				if tp==TYPE_XYZ then
 					Auxiliary.ArbitraryPick(p,4,xyz_plain,6,xyz_adv,2)
-				elseif tp==TYPE_SYNCHRO
+				elseif tp==TYPE_SYNCHRO then
 					Auxiliary.ArbitraryPick(p,4,list,4,list,4,false,true)
 				else
 					Auxiliary.ArbitraryPick(p,4,list,8,nil,nil,false,lv_diff)
