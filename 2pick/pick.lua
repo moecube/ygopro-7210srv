@@ -228,7 +228,7 @@ function Auxiliary.ArbitraryPick(p,count,list,list_count,ex_list,ex_count,copy,l
 		end
 	end
 	Duel.SendtoDeck(ag,nil,0,REASON_RULE)
-	Duel.ResetTimeLimit(p,90)
+	Duel.ResetTimeLimit(p,120)
 	
 	local tg=Group.CreateGroup()
 	local rg=ag
@@ -266,6 +266,7 @@ function Auxiliary.StartPick(e)
 			Duel.Exile(g,REASON_RULE)
 		end
 	end
+--[[
 	for i=1,5 do
 		local list=main
 		local count=4
@@ -291,20 +292,46 @@ function Auxiliary.StartPick(e)
 			Auxiliary.SinglePick(p,list,count,ex_list,ex_count,false)
 		end
 	end
+]]--
+	for i=1,6 do
+		local list=main
+		local list_count=8
+		local ex_list=nil
+		local ex_count=nil
+		if i==1 or i==2 then
+			list=main_plain
+			list_count=6
+			ex_list=main_adv
+			ex_count=2
+		elseif i==3 then
+			list=main_monster
+		elseif i==4 then
+			list=main_spell
+		elseif i==5 then
+			list=main_trap
+		elseif i==6 then
+			list_count=6
+			ex_list=main_new
+			ex_count=2
+		end
+		for p=0,1 do
+			Auxiliary.ArbitraryPick(p,4,list,list_count,ex_list,ex_count)
+		end
+	end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
 				if tp==TYPE_XYZ then
-					Auxiliary.SinglePick(p,xyz_plain,3,xyz_adv,1,false)
+					Auxiliary.ArbitraryPick(p,4,xyz_plain,6,xyz_adv,2,false)
 				else
 					local lv_diff=(tp==TYPE_SYNCHRO)
-					Auxiliary.SinglePick(p,list,4,nil,nil,false,lv_diff)
+					Auxiliary.ArbitraryPick(p,4,list,8,nil,nil,false,lv_diff)
 				end
 			end
 		end
 	end
 	for p=0,1 do
-		Auxiliary.SinglePick(p,extra,2,nil,nil,false,false,extra_fixed)
+		Auxiliary.ArbitraryPick(p,4,extra,6,nil,nil,false,false,extra_fixed)
 	end
 	
 	-- -- XXYYZZ Additional Picks
