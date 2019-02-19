@@ -322,9 +322,10 @@ function Auxiliary.StartPick(e)
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
 				if tp==TYPE_XYZ then
-					Auxiliary.ArbitraryPick(p,4,xyz_plain,6,xyz_adv,2,false)
+					Auxiliary.ArbitraryPick(p,4,xyz_plain,6,xyz_adv,2)
+				elseif tp==TYPE_SYNCHRO
+					Auxiliary.ArbitraryPick(p,4,list,4,list,4,false,true)
 				else
-					local lv_diff=(tp==TYPE_SYNCHRO)
 					Auxiliary.ArbitraryPick(p,4,list,8,nil,nil,false,lv_diff)
 				end
 			end
