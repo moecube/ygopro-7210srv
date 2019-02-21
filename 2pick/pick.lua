@@ -230,8 +230,9 @@ function Auxiliary.ArbitraryPick(p,count,list,list_count,ex_list,ex_count,copy,l
 	Duel.SendtoDeck(ag,nil,0,REASON_RULE)
 	Duel.ResetTimeLimit(p,120)
 	
-	local tg=Group.CreateGroup()
+	local tg=ag:Select(p,count,count,nil)
 	local rg=ag
+	rg:Sub(tg)
 	while true do
 		local finish=tg:GetCount()==count
 		Duel.Hint(HINT_SELECTMSG,p,HINTMSG_TODECK)
