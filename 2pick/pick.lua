@@ -299,7 +299,7 @@ function Auxiliary.StartPick(e)
 		elseif i==6 then
 			lists_count[1]=6
 			lists[2]=main_new
-			list_counts[2]=2
+			lists_count[2]=2
 		end
 		for p=0,1 do
 			Auxiliary.ArbitraryPick(p,4,lists,lists_count)
