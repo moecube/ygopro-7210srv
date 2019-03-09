@@ -312,6 +312,7 @@ function Auxiliary.StartPick(e)
 				counts={[1]=8}
 				lv_diff=false
 				if tp==TYPE_XYZ then
+					lists[1]=xyz_plain
 					counts[1]=6
 					lists[2]=xyz_adv
 					counts[2]=2
