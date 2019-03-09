@@ -190,34 +190,22 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 		Duel.SendtoDeck(g3,nil,0,REASON_RULE)
 	end
 end
-function Auxiliary.ArbitraryPick(p,count,list,list_count,ex_list,ex_count,copy,lv_diff,fixed)
+function Auxiliary.ArbitraryPick(p,count,pick_lists,lists_count,copy,lv_diff,fixed)
 	if not Duel.IsPlayerNeedToPickDeck(p) then return end
 	local ag=Group.CreateGroup()
-	local pg=Group.CreateGroup()
 	local eg=Group.CreateGroup()
-	local plist=list[p]
-	local pick_count=0
-	while pick_count<list_count do
-		local code=plist[math.random(#plist)]
-		local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
-		if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and pg:IsExists(Card.IsLevel,1,nil,lv)) then
-			local card=Duel.CreateToken(p,code)
-			ag:AddCard(card)
-			pg:AddCard(card)
-			pick_count=pick_count+1
-		end
-	end
-	if ex_list and ex_count then
-		local ex_plist=ex_list[p]
-		local ex_pick_count=0
-		while ex_pick_count<ex_count do
-			local code=ex_plist[math.random(#ex_plist)]
+	for index,list in pairs(pick_lists) do
+		local plist=list[p]
+		local pg=Group.CreateGroup()
+		local pick_count=lists_count[index]
+		while pick_count>0 do
+			local code=plist[math.random(#plist)]
 			local lv=Duel.ReadCard(code,CARDDATA_LEVEL)
-			if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and eg:IsExists(Card.IsLevel,1,nil,lv)) then
+			if not ag:IsExists(Card.IsCode,1,nil,code) and not (lv_diff and pg:IsExists(Card.IsLevel,1,nil,lv)) then
 				local card=Duel.CreateToken(p,code)
 				ag:AddCard(card)
-				eg:AddCard(card)
-				ex_pick_count=ex_pick_count+1
+				pg:AddCard(card)
+				pick_count=pick_count-1
 			end
 		end
 	end
@@ -295,45 +283,52 @@ function Auxiliary.StartPick(e)
 	end
 ]]--
 	for i=1,6 do
-		local list=main
-		local list_count=8
-		local ex_list=nil
-		local ex_count=nil
+		local lists={[1]=main}
+		local lists_count={[1]=8}
 		if i==1 or i==2 then
-			list=main_plain
-			list_count=6
-			ex_list=main_adv
-			ex_count=2
+			lists[1]=main_plain
+			lists_count[1]=6
+			lists[2]=main_adv
+			lists_count[2]=2
 		elseif i==3 then
-			list=main_monster
+			lists[1]=main_monster
 		elseif i==4 then
-			list=main_spell
+			lists[1]=main_spell
 		elseif i==5 then
-			list=main_trap
+			lists[1]=main_trap
 		elseif i==6 then
-			list_count=6
-			ex_list=main_new
-			ex_count=2
+			lists_count[1]=6
+			lists[2]=main_new
+			list_counts[2]=2
 		end
 		for p=0,1 do
-			Auxiliary.ArbitraryPick(p,4,list,list_count,ex_list,ex_count)
+			Auxiliary.ArbitraryPick(p,4,lists,lists_count)
 		end
 	end
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
+				lists ={[1]=list}
+				counts={[1]=8}
+				lv_diff=false
 				if tp==TYPE_XYZ then
-					Auxiliary.ArbitraryPick(p,4,xyz_plain,6,xyz_adv,2)
+					counts[1]=6
+					lists[2]=xyz_adv
+					counts[2]=2
 				elseif tp==TYPE_SYNCHRO then
-					Auxiliary.ArbitraryPick(p,4,list,4,list,4,false,true)
-				else
-					Auxiliary.ArbitraryPick(p,4,list,8,nil,nil,false,lv_diff)
+					counts[1]=4
+					lists[2]=list
+					counts[2]=4
+					lv_diff=true
 				end
+				Auxiliary.ArbitraryPick(p,4,lists,counts,false,lv_diff)
 			end
 		end
 	end
 	for p=0,1 do
-		Auxiliary.ArbitraryPick(p,4,extra,6,nil,nil,false,false,extra_fixed)
+		lists ={[1]=extra}
+		counts={[1]=6}
+		Auxiliary.ArbitraryPick(p,4,lists,counts,false,false,extra_fixed)
 	end
 	
 	-- -- XXYYZZ Additional Picks
