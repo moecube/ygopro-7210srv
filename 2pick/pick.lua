@@ -283,22 +283,12 @@ function Auxiliary.StartPick(e)
 	end
 ]]--
 	for i=1,6 do
-		local lists={[1]=main}
-		local lists_count={[1]=8}
+		local lists={[1]=main_monster,[3]=main_spell,[4]=main_trap}
+		local lists_count={[1]=4,[3]=2,[4]=2}
 		if i==1 or i==2 then
 			lists[1]=main_plain
-			lists_count[1]=6
+			lists_count[1]=2
 			lists[2]=main_adv
-			lists_count[2]=2
-		elseif i==3 then
-			lists[1]=main_monster
-		elseif i==4 then
-			lists[1]=main_spell
-		elseif i==5 then
-			lists[1]=main_trap
-		elseif i==6 then
-			lists_count[1]=6
-			lists[2]=main_new
 			lists_count[2]=2
 		end
 		for p=0,1 do
