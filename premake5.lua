@@ -4,10 +4,22 @@ solution "ygo"
     objdir "obj"
 
     configurations { "Release", "Debug" }
-    defines { "LUA_COMPAT_5_2", "YGOPRO_SERVER_MODE" } --, "YGOPRO_LUA_SAVE" }
+if os.getenv("YGOPRO_NO_LUA_SAFE") then
+    defines { "LUA_COMPAT_5_2", "YGOPRO_SERVER_MODE" }
+else
+    defines { "LUA_COMPAT_5_2", "YGOPRO_SERVER_MODE" } --, "YGOPRO_LUA_SAFE" }
+end
     configuration "windows"
         defines { "WIN32", "_WIN32" }
         startproject "ygopro"
+
+if os.getenv("YGOPRO_USE_XP_TOOLSET") then
+    configuration { "windows", "vs2017" }
+        toolset "v141_xp"
+
+    configuration { "windows", "not vs2017" }
+        toolset "v140_xp"
+end
 
     configuration "bsd"
         defines { "LUA_USE_POSIX" }

@@ -233,6 +233,8 @@ void DuelClient::ClientEvent(bufferevent *bev, short events, void *ctx) {
 			}
 		}
 		event_base_loopexit(client_base, 0);
+		if(exit_on_return && auto_watch_mode)
+			mainGame->device->closeDevice();
 	}
 }
 int DuelClient::ClientThread(void* param) {
@@ -728,14 +730,16 @@ void DuelClient::HandleSTOCPacketLan(char* data, unsigned int len) {
 			mainGame->dInfo.isReplaySkiping = false;
 		mainGame->wSurrender->setVisible(false);
 		mainGame->stMessage->setText(dataManager.GetSysString(1500));
-		mainGame->PopupElement(mainGame->wMessage);
-		mainGame->gMutex.Unlock();
-		mainGame->actionSignal.Reset();
-		mainGame->actionSignal.Wait();
-		mainGame->closeDoneSignal.Reset();
-		mainGame->closeSignal.Set();
-		mainGame->closeDoneSignal.Wait();
-		mainGame->gMutex.Lock();
+		if(!auto_watch_mode) {
+			mainGame->PopupElement(mainGame->wMessage);
+			mainGame->gMutex.Unlock();
+			mainGame->actionSignal.Reset();
+			mainGame->actionSignal.Wait();
+			mainGame->closeDoneSignal.Reset();
+			mainGame->closeSignal.Set();
+			mainGame->closeDoneSignal.Wait();
+			mainGame->gMutex.Lock();
+		}
 		mainGame->dInfo.isStarted = false;
 		mainGame->dInfo.isFinished = true;
 		mainGame->dInfo.announce_cache.clear();
@@ -2173,7 +2177,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			}
 			mainGame->WaitFrameSignal(5);
 		}
-		if (panel_confirm.size()) {
+		if (panel_confirm.size() && !auto_watch_mode) {
 			std::sort(panel_confirm.begin(), panel_confirm.end(), ClientCard::client_card_sort);
 			mainGame->gMutex.Lock();
 			mainGame->dField.selectable_cards = panel_confirm;
