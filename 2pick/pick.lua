@@ -100,7 +100,7 @@ function Auxiliary.SaveDeck()
 		Duel.SavePickDeck(p,g)
 	end
 end
-function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,packed)
+function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,packed,optional)
 	if not Duel.IsPlayerNeedToPickDeck(p) then return end
 	local g1=Group.CreateGroup()
 	local g2=Group.CreateGroup()
@@ -166,6 +166,14 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 	end
 	Duel.ResetTimeLimit(p,90)
 	
+	if optional and ag:GetFirst():IsLocation(LOCATION_DECK) then
+		Duel.ConfirmCards(p,ag)
+		if Duel.SelectOption(tp,1190,1192)==1 then
+			Duel.Exile(ag,REASON_RULE)
+			return false
+		end
+	end
+	
 	local tg=Group.CreateGroup()
 	local rg=ag
 	while true do
@@ -189,6 +197,7 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 		end
 		Duel.SendtoDeck(g3,nil,0,REASON_RULE)
 	end
+	return true
 end
 function Auxiliary.ArbitraryPick(p,count,pick_lists,lists_count,copy,lv_diff,fixed)
 	if not Duel.IsPlayerNeedToPickDeck(p) then return end
