@@ -26,6 +26,7 @@ local xyz_plain={[0]={},[1]={}}
 local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
+local combo_pack=require("./2pick/combo")
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
@@ -291,7 +292,7 @@ function Auxiliary.StartPick(e)
 		end
 	end
 ]]--
-	for i=1,6 do
+	for i=1,5 do
 		local lists={[1]=main_monster,[3]=main_spell,[4]=main_trap}
 		local lists_count={[1]=4,[3]=2,[4]=2}
 		if i==1 or i==2 then
@@ -304,6 +305,13 @@ function Auxiliary.StartPick(e)
 			Auxiliary.ArbitraryPick(p,4,lists,lists_count)
 		end
 	end
+	
+	-- combo pick
+	if not Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack,true) then
+		Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack)
+	end
+	Auxiliary.SinglePick(1,main,0,nil,nil,false,false,nil,combo_pack.pack)
+	
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
 			for p=0,1 do
