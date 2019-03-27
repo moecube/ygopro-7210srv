@@ -168,7 +168,7 @@ function Auxiliary.SinglePick(p,list,count,ex_list,ex_count,copy,lv_diff,fixed,p
 	
 	if optional and ag:GetFirst():IsLocation(LOCATION_DECK) then
 		Duel.ConfirmCards(p,ag)
-		if Duel.SelectOption(tp,1190,1192)==1 then
+		if Duel.SelectOption(p,1190,1192)==1 then
 			Duel.Exile(ag,REASON_RULE)
 			return false
 		end
