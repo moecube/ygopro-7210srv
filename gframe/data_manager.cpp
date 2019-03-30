@@ -7,12 +7,38 @@ namespace ygo {
 const wchar_t* DataManager::unknown_string = L"???";
 wchar_t DataManager::strBuffer[4096];
 byte DataManager::scriptBuffer[0x20000];
+#ifndef YGOPRO_SERVER_MODE
+IFileSystem* DataManager::FileSystem;
+#endif
 DataManager dataManager;
 
-bool DataManager::LoadDB(const char* file) {
+bool DataManager::LoadDB(const wchar_t* wfile) {
+	char file[256];
+	BufferIO::EncodeUTF8(wfile, file);
+#ifdef YGOPRO_SERVER_MODE
 	sqlite3* pDB;
 	if(sqlite3_open_v2(file, &pDB, SQLITE_OPEN_READONLY, 0) != SQLITE_OK)
 		return Error(pDB);
+#else
+#ifdef _WIN32
+	IReadFile* reader = FileSystem->createAndOpenFile(wfile);
+#else
+	IReadFile* reader = FileSystem->createAndOpenFile(file);
+#endif
+	if(reader == NULL)
+		return false;
+	spmemvfs_db_t db;
+	spmembuffer_t* mem = (spmembuffer_t*)calloc(sizeof(spmembuffer_t), 1);
+	spmemvfs_env_init();
+	mem->total = mem->used = reader->getSize();
+	mem->data = (char*)malloc(mem->total + 1);
+	reader->read(mem->data, mem->total);
+	reader->drop();
+	(mem->data)[mem->total] = '\0';
+	if(spmemvfs_open_db(&db, file, mem) != SQLITE_OK)
+		return Error(&db);
+	sqlite3* pDB = db.handle;
+#endif //YGOPRO_SERVER_MODE
 	sqlite3_stmt* pStmt;
 #ifdef YGOPRO_SERVER_MODE
 	const char* sql = "select * from datas";
@@ -20,14 +46,22 @@ bool DataManager::LoadDB(const char* file) {
 	const char* sql = "select * from datas,texts where datas.id=texts.id";
 #endif
 	if(sqlite3_prepare_v2(pDB, sql, -1, &pStmt, 0) != SQLITE_OK)
+#ifdef YGOPRO_SERVER_MODE
 		return Error(pDB);
+#else
+		return Error(&db);
+#endif
 	CardDataC cd;
 	CardString cs;
 	int step = 0;
 	do {
 		step = sqlite3_step(pStmt);
 		if(step == SQLITE_BUSY || step == SQLITE_ERROR || step == SQLITE_MISUSE)
+#ifdef YGOPRO_SERVER_MODE
 			return Error(pDB, pStmt);
+#else
+			return Error(&db, pStmt);
+#endif
 		else if(step == SQLITE_ROW) {
 			cd.code = sqlite3_column_int(pStmt, 0);
 			cd.ot = sqlite3_column_int(pStmt, 1);
@@ -69,49 +103,69 @@ bool DataManager::LoadDB(const char* file) {
 		}
 	} while(step != SQLITE_DONE);
 	sqlite3_finalize(pStmt);
+#ifdef YGOPRO_SERVER_MODE
 	sqlite3_close(pDB);
+#else
+	spmemvfs_close_db(&db);
+	spmemvfs_env_fini();
+#endif
 	return true;
 }
 bool DataManager::LoadStrings(const char* file) {
-#ifdef _WIN32
-	wchar_t fname[1024];
-	BufferIO::DecodeUTF8(file, fname);
-	FILE* fp = _wfopen(fname, L"r");
-#else
 	FILE* fp = fopen(file, "r");
-#endif // _WIN32
 	if(!fp)
 		return false;
 	char linebuf[256];
-	char strbuf[256];
-	int value;
 	while(fgets(linebuf, 256, fp)) {
-		if(linebuf[0] != '!')
-			continue;
-		sscanf(linebuf, "!%s", strbuf);
-		if(!strcmp(strbuf, "system")) {
-			sscanf(&linebuf[7], "%d %240[^\n]", &value, strbuf);
-			BufferIO::DecodeUTF8(strbuf, strBuffer);
-			_sysStrings[value] = strBuffer;
-		} else if(!strcmp(strbuf, "victory")) {
-			sscanf(&linebuf[8], "%x %240[^\n]", &value, strbuf);
-			BufferIO::DecodeUTF8(strbuf, strBuffer);
-			_victoryStrings[value] = strBuffer;
-		} else if(!strcmp(strbuf, "counter")) {
-			sscanf(&linebuf[8], "%x %240[^\n]", &value, strbuf);
-			BufferIO::DecodeUTF8(strbuf, strBuffer);
-			_counterStrings[value] = strBuffer;
-		} else if(!strcmp(strbuf, "setname")) {
-			sscanf(&linebuf[8], "%x %240[^\t\n]", &value, strbuf);//using tab for comment
-			BufferIO::DecodeUTF8(strbuf, strBuffer);
-			_setnameStrings[value] = strBuffer;
-		}
+		ReadStringConfLine(linebuf);
 	}
 	fclose(fp);
 	for(int i = 0; i < 255; ++i)
 		myswprintf(numStrings[i], L"%d", i);
 	return true;
 }
+#ifndef YGOPRO_SERVER_MODE
+bool DataManager::LoadStrings(IReadFile* reader) {
+	char ch[2] = " ";
+	char linebuf[256] = "";
+	while(reader->read(&ch[0], 1)) {
+		if(ch[0] == '\0')
+			break;
+		strcat(linebuf, ch);
+		if(ch[0] == '\n') {
+			ReadStringConfLine(linebuf);
+			linebuf[0] = '\0';
+		}
+	}
+	reader->drop();
+	return true;
+}
+#endif //YGOPRO_SERVER_MODE
+void DataManager::ReadStringConfLine(const char* linebuf) {
+	if(linebuf[0] != '!')
+		return;
+	char strbuf[256];
+	int value;
+	sscanf(linebuf, "!%s", strbuf);
+	if(!strcmp(strbuf, "system")) {
+		sscanf(&linebuf[7], "%d %240[^\n]", &value, strbuf);
+		BufferIO::DecodeUTF8(strbuf, strBuffer);
+		_sysStrings[value] = strBuffer;
+	} else if(!strcmp(strbuf, "victory")) {
+		sscanf(&linebuf[8], "%x %240[^\n]", &value, strbuf);
+		BufferIO::DecodeUTF8(strbuf, strBuffer);
+		_victoryStrings[value] = strBuffer;
+	} else if(!strcmp(strbuf, "counter")) {
+		sscanf(&linebuf[8], "%x %240[^\n]", &value, strbuf);
+		BufferIO::DecodeUTF8(strbuf, strBuffer);
+		_counterStrings[value] = strBuffer;
+	} else if(!strcmp(strbuf, "setname")) {
+		sscanf(&linebuf[8], "%x %240[^\t\n]", &value, strbuf);//using tab for comment
+		BufferIO::DecodeUTF8(strbuf, strBuffer);
+		_setnameStrings[value] = strBuffer;
+	}
+}
+#ifdef YGOPRO_SERVER_MODE
 bool DataManager::Error(sqlite3* pDB, sqlite3_stmt* pStmt) {
 	BufferIO::DecodeUTF8(sqlite3_errmsg(pDB), strBuffer);
 	if(pStmt)
@@ -119,6 +173,16 @@ bool DataManager::Error(sqlite3* pDB, sqlite3_stmt* pStmt) {
 	sqlite3_close(pDB);
 	return false;
 }
+#else
+bool DataManager::Error(spmemvfs_db_t* pDB, sqlite3_stmt* pStmt) {
+	BufferIO::DecodeUTF8(sqlite3_errmsg(pDB->handle), strBuffer);
+	if(pStmt)
+		sqlite3_finalize(pStmt);
+	spmemvfs_close_db(pDB);
+	spmemvfs_env_fini();
+	return false;
+}
+#endif
 bool DataManager::GetData(int code, CardData* pData) {
 	auto cdit = _datas.find(code);
 	if(cdit == _datas.end())
@@ -331,51 +395,31 @@ byte* DataManager::ScriptReaderEx(const char* script_name, int* slen) {
 	byte* buffer;
 #ifndef YGOPRO_SERVER_MODE
 	if(!mainGame->gameConf.prefer_expansion_script) {
-		buffer = ScriptReaderExDirectry(".", script_name, slen);
+		buffer = ScriptReaderExSingle("", script_name, slen);
 		if(buffer)
 			return buffer;
 	}
 #endif
-	buffer = ScriptReaderExDirectry("./specials", script_name, slen, 8);
+	buffer = ScriptReaderExSingle("specials/", script_name, slen, 9);
 	if(buffer)
 		return buffer;
-	buffer = ScriptReaderExDirectry("./expansions", script_name, slen);
+	buffer = ScriptReaderExSingle("expansions/", script_name, slen);
 	if(buffer)
 		return buffer;
-	buffer = ScriptReaderExDirectry("./beta", script_name, slen);
+	buffer = ScriptReaderExSingle("2pick/", script_name, slen, 9);
 	if(buffer)
 		return buffer;
-	buffer = ScriptReaderExDirectry("./2pick", script_name, slen, 8);
-	if(buffer)
-		return buffer;
-	bool find = false;
-	FileSystem::TraversalDir("./expansions", [script_name, slen, &buffer, &find](const char* name, bool isdir) {
-		if(!find && isdir && strcmp(name, ".") && strcmp(name, "..") && strcmp(name, "pics") && strcmp(name, "script")) {
-			char subdir[1024];
-			sprintf(subdir, "./expansions/%s", name);
-			buffer = ScriptReaderExDirectry(subdir, script_name, slen);
-			if(buffer)
-				find = true;
-		}
-	});
-	if(find)
-		return buffer;
-	return ScriptReader(script_name, slen);
+	return ScriptReaderExSingle("", script_name, slen);
 }
-byte* DataManager::ScriptReaderExDirectry(const char* path, const char* script_name, int* slen, int pre_len) {
+byte* DataManager::ScriptReaderExSingle(const char* path, const char* script_name, int* slen, int pre_len) {
 	char sname[256];
 	sprintf(sname, "%s%s", path, script_name + pre_len); //default script name: ./script/c%d.lua
 	return ScriptReader(sname, slen);
 }
 byte* DataManager::ScriptReader(const char* script_name, int* slen) {
 	FILE *fp;
-#if defined(_WIN32) && !defined(YGOPRO_SERVER_MODE)
-	wchar_t fname[256];
-	BufferIO::DecodeUTF8(script_name, fname);
-	fp = _wfopen(fname, L"rb");
-#else
+#ifdef YGOPRO_SERVER_MODE
 	fp = fopen(script_name, "rb");
-#endif
 	if(!fp)
 		return 0;
 	int len = fread(scriptBuffer, 1, sizeof(scriptBuffer), fp);
@@ -383,6 +427,25 @@ byte* DataManager::ScriptReader(const char* script_name, int* slen) {
 	if(len >= sizeof(scriptBuffer))
 		return 0;
 	*slen = len;
+#else
+#ifdef _WIN32
+	wchar_t fname[256];
+	BufferIO::DecodeUTF8(script_name, fname);
+	IReadFile* reader = FileSystem->createAndOpenFile(fname);
+#else
+	IReadFile* reader = FileSystem->createAndOpenFile(script_name);
+#endif
+	if(reader == NULL)
+		return 0;
+	size_t size = reader->getSize();
+	if(size > sizeof(scriptBuffer)) {
+		reader->drop();
+		return 0;
+	}
+	reader->read(scriptBuffer, size);
+	reader->drop();
+	*slen = size;
+#endif //YGOPRO_SERVER_MODE
 	return scriptBuffer;
 }
 

@@ -18,7 +18,7 @@
 #include <regex>
 #endif //YGOPRO_SERVER_MODE
 
-unsigned short PRO_VERSION = 0x1348;
+unsigned short PRO_VERSION = 0x1349;
 
 namespace ygo {
 
@@ -32,10 +32,9 @@ HostInfo game_info;
 void Game::MainServerLoop() {
 	initUtils();
 	deckManager.LoadLFList();
-	LoadBetaDB();
-	LoadExpansionDB();
-	dataManager.LoadDB("cards.cdb");
-
+	LoadExpansions();
+	dataManager.LoadDB(L"cards.cdb");
+	
 	aServerPort = NetServer::StartServer(aServerPort);
 	NetServer::InitDuel();
 	printf("%u\n", aServerPort);
@@ -50,43 +49,10 @@ void Game::MainServerLoop() {
 	}
 }
 void Game::MainTestLoop(int code) {
-	LoadBetaDB();
-	LoadExpansionDB();
-	dataManager.LoadDB("cards.cdb");
+	LoadExpansions();
+	dataManager.LoadDB(L"cards.cdb");
 	fflush(stdout);
 	NetServer::InitTestCard(code);
-}
-void Game::LoadBetaDB() {
-	LoadExpansionDBDirectry("./beta");
-#ifdef _WIN32
-	char fpath[1000];
-	WIN32_FIND_DATAW fdataw;
-	HANDLE fh = FindFirstFileW(L"./beta/*", &fdataw);
-	if(fh != INVALID_HANDLE_VALUE) {
-		do {
-			if(wcscmp(L".",fdataw.cFileName) != 0 && wcscmp(L"..",fdataw.cFileName) != 0 && fdataw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-				char fname[780];
-				BufferIO::EncodeUTF8(fdataw.cFileName, fname);
-				sprintf(fpath, "./beta/%s", fname);
-				LoadExpansionDBDirectry(fpath);
-			}
-		} while(FindNextFileW(fh, &fdataw));
-		FindClose(fh);
-	}
-#else
-	DIR * dir;
-	struct dirent * dirp;
-	if((dir = opendir("./beta/")) != NULL) {
-		while((dirp = readdir(dir)) != NULL) {
-			if (strcmp(".", dirp->d_name) == 0 || strcmp("..", dirp->d_name) == 0 || dirp->d_type != DT_DIR)
-				continue;
-			char filepath[1000];
-			sprintf(filepath, "./beta/%s/", dirp->d_name);
-			LoadExpansionDBDirectry(filepath);
-		}
-		closedir(dir);
-	}
-#endif
 }
 #else //YGOPRO_SERVER_MODE
 bool Game::Initialize() {
@@ -149,9 +115,10 @@ bool Game::Initialize() {
 		ErrorLog("Failed to load textures!");
 		return false;
 	}
-	LoadExpansionDB();
-	if(dataManager.LoadDB(GetLocaleDir("cards.cdb"))) {} else
-	if(!dataManager.LoadDB("cards.cdb")) {
+	dataManager.FileSystem = device->getFileSystem();
+	LoadExpansions();
+	if(dataManager.LoadDB(GetLocaleDirWide("cards.cdb"))) {} else
+	if(!dataManager.LoadDB(L"cards.cdb")) {
 		ErrorLog("Failed to load card database (cards.cdb)!");
 		return false;
 	}
@@ -160,7 +127,7 @@ bool Game::Initialize() {
 		ErrorLog("Failed to load strings!");
 		return false;
 	}
-	LoadExpansionStrings();
+	dataManager.LoadStrings("./expansions/strings.conf");
 	env = device->getGUIEnvironment();
 	numFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 16);
 	adFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 12);
@@ -1053,36 +1020,53 @@ void Game::SetStaticText(irr::gui::IGUIStaticText* pControl, u32 cWidth, irr::gu
 	pControl->setText(dataManager.strBuffer);
 }
 #endif //YGOPRO_SERVER_MODE
-void Game::LoadExpansionDB() {
-	LoadExpansionDBDirectry("./expansions");
-	FileSystem::TraversalDir("./expansions", [this](const char* name, bool isdir) {
-		if(isdir && strcmp(name, ".") && strcmp(name, "..") && strcmp(name, "pics") && strcmp(name, "script")) {
-			char subdir[1024];
-			sprintf(subdir, "./expansions/%s", name);
-			LoadExpansionDBDirectry(subdir);
-		}
-	});
-}
-void Game::LoadExpansionDBDirectry(const char* path) {
-	FileSystem::TraversalDir(path, [path](const char* name, bool isdir) {
-		if(!isdir && strrchr(name, '.') && !mystrncasecmp(strrchr(name, '.'), ".cdb", 4)) {
-			char fpath[1024];
-			sprintf(fpath, "%s/%s", path, name);
+void Game::LoadExpansions() {
+	FileSystem::TraversalDir(L"./expansions", [](const wchar_t* name, bool isdir) {
+		if(!isdir && wcsrchr(name, '.') && !mywcsncasecmp(wcsrchr(name, '.'), L".cdb", 4)) {
+			wchar_t fpath[1024];
+			myswprintf(fpath, L"./expansions/%ls", name);
 			dataManager.LoadDB(fpath);
 		}
+#ifdef YGOPRO_SERVER_MODE
 	});
-}
-#ifndef YGOPRO_SERVER_MODE
-void Game::LoadExpansionStrings() {
-	dataManager.LoadStrings("./expansions/strings.conf");
-	FileSystem::TraversalDir("./expansions", [](const char* name, bool isdir) {
-		if(isdir && strcmp(name, ".") && strcmp(name, "..") && strcmp(name, "pics") && strcmp(name, "script")) {
-			char fpath[1024];
-			sprintf(fpath, "./expansions/%s/strings.conf", name);
-			dataManager.LoadStrings(fpath);
+#else
+		if(!isdir && wcsrchr(name, '.') && !mywcsncasecmp(wcsrchr(name, '.'), L".zip", 4)) {
+			wchar_t fpath[1024];
+			myswprintf(fpath, L"./expansions/%ls", name);
+#ifdef _WIN32
+			dataManager.FileSystem->addFileArchive(fpath, true, false);
+#else
+			char upath[1024];
+			BufferIO::EncodeUTF8(fpath, upath);
+			dataManager.FileSystem->addFileArchive(upath, true, false);
+#endif
 		}
 	});
+	for(u32 i = 0; i < DataManager::FileSystem->getFileArchiveCount(); ++i) {
+		const IFileList* archive = DataManager::FileSystem->getFileArchive(i)->getFileList();
+		for(u32 j = 0; j < archive->getFileCount(); ++j) {
+#ifdef _WIN32
+			const wchar_t* fname = archive->getFullFileName(j).c_str();
+#else
+			wchar_t fname[1024];
+			const char* uname = archive->getFullFileName(j).c_str();
+			BufferIO::DecodeUTF8(uname, fname);
+#endif
+			if(wcsrchr(fname, '.') && !mywcsncasecmp(wcsrchr(fname, '.'), L".cdb", 4))
+				dataManager.LoadDB(fname);
+			if(wcsrchr(fname, '.') && !mywcsncasecmp(wcsrchr(fname, '.'), L".conf", 5)) {
+#ifdef _WIN32
+				IReadFile* reader = DataManager::FileSystem->createAndOpenFile(fname);
+#else
+				IReadFile* reader = DataManager::FileSystem->createAndOpenFile(uname);
+#endif
+				dataManager.LoadStrings(reader);
+			}
+		}
+	}
+#endif //YGOPRO_SERVER_MODE
 }
+#ifndef YGOPRO_SERVER_MODE
 void Game::RefreshDeck(irr::gui::IGUIComboBox* cbDeck) {
 	cbDeck->clear();
 	FileSystem::TraversalDir(L"./deck", [cbDeck](const wchar_t* name, bool isdir) {
@@ -2057,6 +2041,8 @@ void Game::OnResize() {
 	lstLog->setRelativePosition(Resize(10, 10, 290, 290));
 	if(showingcode)
 		ShowCardInfo(showingcode, true);
+	else
+		ClearCardInfo();
 	btnClearLog->setRelativePosition(Resize(160, 300, 260, 325));
 
 	wPhase->setRelativePosition(Resize(480, 310, 855, 330));
@@ -2237,12 +2223,17 @@ bool Game::CheckRegEx(const std::wstring& text, const std::wstring& exp, bool ex
 const char* Game::GetLocaleDir(const char* dir) {
 	if(!gameConf.locale || !wcscmp(gameConf.locale, L"default"))
 		return dir;
-	wchar_t locale_buf[256];
-	wchar_t orig_dir[64];
 	BufferIO::DecodeUTF8(dir, orig_dir);
 	myswprintf(locale_buf, L"locales/%ls/%ls", gameConf.locale, orig_dir);
 	BufferIO::EncodeUTF8(locale_buf, locale_buf_utf8);
 	return locale_buf_utf8;
+}
+const wchar_t* Game::GetLocaleDirWide(const char* dir) {
+	BufferIO::DecodeUTF8(dir, orig_dir);
+	if(!gameConf.locale || !wcscmp(gameConf.locale, L"default"))
+		return orig_dir;
+	myswprintf(locale_buf, L"locales/%ls/%ls", gameConf.locale, orig_dir);
+	return locale_buf;
 }
 void Game::SetCursor(ECURSOR_ICON icon) {
 	ICursorControl* cursor = mainGame->device->getCursorControl();
