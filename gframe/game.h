@@ -438,6 +438,7 @@ public:
 	irr::gui::IGUIButton* btnOptionn;
 	irr::gui::IGUIButton* btnOptionOK;
 	irr::gui::IGUIButton* btnOption[5];
+	irr::gui::IGUIScrollBar* scrOption;
 	//pos selection
 	irr::gui::IGUIWindow* wPosSelect;
 	irr::gui::CGUIImageButton* btnPSAU;
@@ -511,6 +512,19 @@ public:
 	irr::gui::IGUIButton* btnSideSort;
 	irr::gui::IGUIButton* btnSideReload;
 	irr::gui::IGUIEditBox* ebDeckname;
+	irr::gui::IGUIButton* btnRenameDeck;
+	irr::gui::IGUIButton* btnDeckCode;
+	//deck rename
+	irr::gui::IGUIWindow* wRenameDeck;
+	irr::gui::IGUIEditBox* ebREName;
+	irr::gui::IGUIButton* btnREYes;
+	irr::gui::IGUIButton* btnRENo;
+	//deck code
+	irr::gui::IGUIWindow* wDeckCode;
+	irr::gui::IGUIEditBox* ebDeckCode;
+	irr::gui::IGUIButton* btnDeckCodeYes;
+	irr::gui::IGUIButton* btnDeckCodeNo;
+  //
 	irr::gui::IGUIStaticText* stBanlist;
 	irr::gui::IGUIStaticText* stDeck;
 	irr::gui::IGUIStaticText* stCategory;
@@ -522,12 +536,6 @@ public:
 	irr::gui::IGUIStaticText* stStar;
 	irr::gui::IGUIStaticText* stSearch;
 	irr::gui::IGUIStaticText* stScale;
-	irr::gui::IGUIButton* btnRenameDeck;
-	//deck rename
-	irr::gui::IGUIWindow* wRenameDeck;
-	irr::gui::IGUIEditBox* ebREName;
-	irr::gui::IGUIButton* btnREYes;
-	irr::gui::IGUIButton* btnRENo;
 	//filter
 	irr::gui::IGUIStaticText* wFilter;
 	irr::gui::IGUIScrollBar* scrFilter;
@@ -658,6 +666,7 @@ extern HostInfo game_info;
 #define BUTTON_OPTION_2				225
 #define BUTTON_OPTION_3				226
 #define BUTTON_OPTION_4				227
+#define SCROLL_OPTION_SELECT		228
 #define BUTTON_CARD_0				230
 #define BUTTON_CARD_1				231
 #define BUTTON_CARD_2				232
@@ -763,6 +772,10 @@ extern HostInfo game_info;
 #define BUTTON_RENAME_DECK			386
 #define BUTTON_RENAME_DECK_SAVE		387
 #define BUTTON_RENAME_DECK_CANCEL	388
+
+#define BUTTON_DECK_CODE			389
+#define BUTTON_DECK_CODE_SAVE		390
+#define BUTTON_DECK_CODE_CANCEL		391
 
 #define TEXTURE_DUEL				0
 #define TEXTURE_DECK				1
