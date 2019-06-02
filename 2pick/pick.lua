@@ -228,6 +228,7 @@ function Auxiliary.ArbitraryPick(p,count,pick_lists,lists_count,copy,lv_diff,fix
 	Duel.SendtoDeck(ag,nil,0,REASON_RULE)
 	Duel.ResetTimeLimit(p,120)
 	
+	Duel.Hint(HINT_SELECTMSG,p,0)
 	local tg=ag:Select(p,count,count,nil)
 	local rg=ag
 	rg:Sub(tg)
