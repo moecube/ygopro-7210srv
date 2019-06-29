@@ -55,7 +55,7 @@ function Auxiliary.LoadDB(p,pool)
 				if lv>4 then
 					table.insert(xyz_adv[p],code)
 				else
-					table.insert(xyz_plain[p],code)				
+					table.insert(xyz_plain[p],code)
 				end
 			end
 		elseif (cat & TYPE_TOKEN)==0 then
@@ -308,10 +308,18 @@ function Auxiliary.StartPick(e)
 	end
 	
 	-- combo pick
-	if not Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack,true) then
-		Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack)
+	for t=2,0,-1 do
+		local reroll=t>0
+		if Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack,reroll) then
+			break
+		end
 	end
-	Auxiliary.SinglePick(1,main,0,nil,nil,false,false,nil,combo_pack.pack)
+	for t=1,0,-1 do
+		local reroll=t>0
+		if Auxiliary.SinglePick(1,main,0,nil,nil,false,false,nil,combo_pack.pack,reroll) then
+			break
+		end
+	end
 	
 	for tp,list in pairs(extra_sp) do
 		if tp~=TYPE_FUSION then
