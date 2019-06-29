@@ -778,8 +778,11 @@ void DuelClient::HandleSTOCPacketLan(char* data, unsigned int len) {
 		mainGame->btnChainWhenAvail->setVisible(false);
 		mainGame->btnCancelOrFinish->setVisible(false);
 		mainGame->btnShuffle->setVisible(false);
-		time_t nowtime = time(NULL);
-		tm* localedtime = localtime(&nowtime);
+		char* prep = pdata;
+		Replay new_replay;
+		memcpy(&new_replay.pheader, prep, sizeof(ReplayHeader));
+		time_t starttime = new_replay.pheader.seed;
+		tm* localedtime = localtime(&starttime);
 		wchar_t timetext[40];
 		wcsftime(timetext, 40, L"%Y-%m-%d %H-%M-%S", localedtime);
 		mainGame->ebRSName->setText(timetext);
@@ -800,9 +803,6 @@ void DuelClient::HandleSTOCPacketLan(char* data, unsigned int len) {
 			mainGame->WaitFrameSignal(30);
 		}
 		if(mainGame->actionParam || !is_host) {
-			char* prep = pdata;
-			Replay new_replay;
-			memcpy(&new_replay.pheader, prep, sizeof(ReplayHeader));
 			prep += sizeof(ReplayHeader);
 			memcpy(new_replay.comp_data, prep, len - sizeof(ReplayHeader) - 1);
 			new_replay.comp_size = len - sizeof(ReplayHeader) - 1;
@@ -962,7 +962,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len, bool retry) {
 	char* pbuf = msg;
 	wchar_t textBuffer[256];
 	mainGame->dInfo.curMsg = BufferIO::ReadUInt8(pbuf);
-	if(mainGame->dInfo.curMsg != MSG_RETRY && !retry) {
+	if(mainGame->dInfo.curMsg != MSG_RETRY) {
 		memcpy(last_successful_msg, msg, len);
 		last_successful_msg_length = len;
 	}
@@ -987,16 +987,26 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len, bool retry) {
 		mainGame->dInfo.time_player = 2;
 	switch(mainGame->dInfo.curMsg) {
 	case MSG_RETRY: {
-		if(!retry && last_successful_msg_length) {
+		if(last_successful_msg_length) {
+			char* p = last_successful_msg;
+			auto last_msg = BufferIO::ReadUInt8(p);
+			int err_desc = 1422;
+			switch(last_msg) {
+			case MSG_ANNOUNCE_CARD:
+			case MSG_ANNOUNCE_CARD_FILTER:
+				err_desc = 1421;
+			//TODO: other cases
+			default:
+				break;
+			}
 			mainGame->gMutex.Lock();
-			mainGame->stMessage->setText(dataManager.GetDesc(1422));
+			mainGame->stMessage->setText(dataManager.GetDesc(err_desc));
 			mainGame->PopupElement(mainGame->wMessage);
 			mainGame->gMutex.Unlock();
 			mainGame->actionSignal.Reset();
 			mainGame->actionSignal.Wait();
 			select_hint = last_select_hint;
-			ClientAnalyze(last_successful_msg, last_successful_msg_length, true);
-			break;
+			return ClientAnalyze(last_successful_msg, last_successful_msg_length);
 		}
 		mainGame->gMutex.Lock();
 		mainGame->stMessage->setText(L"Error occurs.");
@@ -1004,27 +1014,29 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len, bool retry) {
 		mainGame->gMutex.Unlock();
 		mainGame->actionSignal.Reset();
 		mainGame->actionSignal.Wait();
-		mainGame->closeDoneSignal.Reset();
-		mainGame->closeSignal.Set();
-		mainGame->closeDoneSignal.Wait();
-		mainGame->gMutex.Lock();
-		mainGame->dInfo.isStarted = false;
-		mainGame->dInfo.isFinished = false;
-		mainGame->btnCreateHost->setEnabled(true);
-		mainGame->btnJoinHost->setEnabled(true);
-		mainGame->btnJoinCancel->setEnabled(true);
-		mainGame->btnStartBot->setEnabled(true);
-		mainGame->btnBotCancel->setEnabled(true);
-		mainGame->stTip->setVisible(false);
-		mainGame->device->setEventReceiver(&mainGame->menuHandler);
-		if(bot_mode)
-			mainGame->ShowElement(mainGame->wSinglePlay);
-		else
-			mainGame->ShowElement(mainGame->wLanWindow);
-		mainGame->gMutex.Unlock();
-		event_base_loopbreak(client_base);
-		if(exit_on_return)
-			mainGame->device->closeDevice();
+		if(!mainGame->dInfo.isSingleMode) {
+			mainGame->closeDoneSignal.Reset();
+			mainGame->closeSignal.Set();
+			mainGame->closeDoneSignal.Wait();
+			mainGame->gMutex.Lock();
+			mainGame->dInfo.isStarted = false;
+			mainGame->dInfo.isFinished = false;
+			mainGame->btnCreateHost->setEnabled(true);
+			mainGame->btnJoinHost->setEnabled(true);
+			mainGame->btnJoinCancel->setEnabled(true);
+			mainGame->btnStartBot->setEnabled(true);
+			mainGame->btnBotCancel->setEnabled(true);
+			mainGame->stTip->setVisible(false);
+			mainGame->device->setEventReceiver(&mainGame->menuHandler);
+			if(bot_mode)
+				mainGame->ShowElement(mainGame->wSinglePlay);
+			else
+				mainGame->ShowElement(mainGame->wLanWindow);
+			mainGame->gMutex.Unlock();
+			event_base_loopbreak(client_base);
+			if(exit_on_return)
+				mainGame->device->closeDevice();
+		}
 		return false;
 	}
 	case MSG_HINT: {
@@ -1242,8 +1254,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len, bool retry) {
 		select_unselect_hint = 0;
 		last_select_hint = 0;
 		last_successful_msg_length = 0;
-		if (mainGame->dInfo.isReplaySwapped)
-		{
+		if(mainGame->dInfo.isReplaySwapped) {
 			std::swap(mainGame->dInfo.hostname, mainGame->dInfo.clientname);
 			std::swap(mainGame->dInfo.hostname_tag, mainGame->dInfo.clientname_tag);
 			mainGame->dInfo.isReplaySwapped = false;
