@@ -6,11 +6,11 @@ local extra={[0]={},[1]={}}
 
 local main_nonadv={[0]={},[1]={}}
 
-local main_monster={[0]={},[1]={}}
-local main_spell={[0]={},[1]={}}
-local main_trap={[0]={},[1]={}}
+main_monster={[0]={},[1]={}}
+main_spell={[0]={},[1]={}}
+main_trap={[0]={},[1]={}}
 
-local main_plain={[0]={},[1]={}}
+main_plain={[0]={},[1]={}}
 local main_adv={[0]={},[1]={}}
 
 local main_new={[0]={},[1]={}}
