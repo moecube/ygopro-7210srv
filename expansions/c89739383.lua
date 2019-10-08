@@ -13,8 +13,7 @@ function c89739383.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_HAND,0,1,e:GetHandler()) end
 end
 function c89739383.activate(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetFieldGroup(tp,LOCATION_HAND,0)
-	local tc=g:RandomSelect(1-tp,1):GetFirst()
+	local tc=Duel.SelectMatchingCard(tp,Card.IsAbleToRemove,tp,LOCATION_HAND,0,1,1,nil)
 	if Duel.Remove(tc,POS_FACEDOWN,REASON_EFFECT)~=0 then
 		local tg=Group.CreateGroup()
 		local mm_code=main_spell[0][math.random(#main_spell[0])]
