@@ -79,6 +79,7 @@
 .vscode
 core*
 /bak/
+/.vs
 /bug.txt
 /output
 /temp
@@ -89,3 +90,6 @@ core*
 /*.bat
 /*.sh
 /*.sql
+/patch.exe.manifest
+/patch.exe
+/diff.exe
