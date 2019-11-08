@@ -390,6 +390,67 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
+	Auxiliary.Load_Action_Duel()
+end
+
+	--Action_Duel
+function Auxiliary.Load_Action_Duel()
+	for p=0,1 do
+		local fc=Duel.CreateToken(p,19162134)
+		Duel.MoveToField(fc,p,p,LOCATION_SZONE,POS_FACEUP,true)
+		local e11=Effect.CreateEffect(fc)
+		e11:SetCategory(CATEGORY_DICE)
+		e11:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+		e11:SetCode(EVENT_ATTACK_ANNOUNCE)
+		e11:SetRange(LOCATION_FZONE)
+		e11:SetCountLimit(1)
+		e11:SetCondition(Auxiliary.accondition)
+		e11:SetTarget(Auxiliary.atktg)
+		e11:SetOperation(Auxiliary.RollDice)
+		fc:RegisterEffect(e11)
+	end
+end
+function Auxiliary.accondition(e,tp,eg,ep,ev,re,r,rp,chk)
+	return tp~=Duel.GetTurnPlayer()
+end
+function Auxiliary.atktg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_DICE,nil,0,1-tp,1)
+end
+function Auxiliary.RollDice(e,tp,eg,ep,ev,re,r,rp)
+	local d1,d2=Duel.TossDice(tp,1,1)
+	if d1==d2 then
+		local g=Group.CreateGroup()
+		local a=Duel.GetAttacker()
+		local d=Duel.GetAttackTarget()
+		if a and a:IsOnField() then g:AddCard(a) end
+		if d and d:IsOnField() then g:AddCard(d) end
+		Duel.Destroy(g,REASON_EFFECT)
+	elseif d1>d2 then
+		-- half dmg
+		local e1=Effect.CreateEffect(e:GetHandler())
+        e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+        e1:SetCode(EVENT_PRE_BATTLE_DAMAGE)
+        e1:SetOperation(Auxiliary.hfdmg)
+        e1:SetReset(RESET_PHASE+PHASE_DAMAGE)
+        Duel.RegisterEffect(e1,tp)
+		-- avoid destroy
+		local d=Duel.GetAttackTarget()
+		if d and d:IsOnField() then
+			local e2=Effect.CreateEffect(e:GetHandler())
+			e2:SetType(EFFECT_TYPE_SINGLE)
+			e2:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+			e2:SetValue(1)
+			e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_DAMAGE)
+			d:RegisterEffect(e2)
+		end
+	elseif d1<d2 then
+		-- inflict dmg
+		Duel.Damage(tp,800,REASON_EFFECT)
+	end
+end
+function Auxiliary.hfdmg(e,tp,eg,ep,ev,re,r,rp)
+    Duel.ChangeBattleDamage(tp,math.ceil(ev/2))
 end
 
 	--Skill_DrawSense_Rule
