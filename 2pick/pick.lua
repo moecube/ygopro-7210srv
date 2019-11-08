@@ -260,6 +260,7 @@ function Auxiliary.ArbitraryPick(p,count,pick_lists,lists_count,copy,lv_diff,fix
 	end
 end
 function Auxiliary.StartPick(e)
+	Auxiliary.Load_Action_Duel()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			local g=Duel.GetFieldGroup(p,0xff,0)
@@ -390,7 +391,6 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
-	Auxiliary.Load_Action_Duel()
 end
 
 	--Action_Duel
