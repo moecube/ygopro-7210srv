@@ -260,13 +260,13 @@ function Auxiliary.ArbitraryPick(p,count,pick_lists,lists_count,copy,lv_diff,fix
 	end
 end
 function Auxiliary.StartPick(e)
-	Auxiliary.Load_Action_Duel()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			local g=Duel.GetFieldGroup(p,0xff,0)
 			Duel.Exile(g,REASON_RULE)
 		end
 	end
+	Auxiliary.Load_Action_Duel()
 --[[
 	for i=1,5 do
 		local list=main
