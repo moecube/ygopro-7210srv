@@ -266,7 +266,6 @@ function Auxiliary.StartPick(e)
 			Duel.Exile(g,REASON_RULE)
 		end
 	end
-	Auxiliary.Load_Action_Duel()
 --[[
 	for i=1,5 do
 		local list=main
@@ -367,6 +366,7 @@ function Auxiliary.StartPick(e)
 	-- end
 	
 	Auxiliary.SaveDeck()
+	Auxiliary.Load_Action_Duel()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			Duel.ShuffleDeck(p)
