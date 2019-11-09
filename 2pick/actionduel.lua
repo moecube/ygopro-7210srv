@@ -17,13 +17,13 @@ function ActionDuel.Load_Action_Duel()
 		e1:SetOperation(ActionDuel.activate)
 		fc:RegisterEffect(e1)
 		-- destroy replace
-		local e2=Effect.CreateEffect(a)
+		local e2=Effect.CreateEffect(fc)
 		e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
 		e2:SetCode(EFFECT_DESTROY_REPLACE)
 		e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 		e2:SetRange(LOCATION_FZONE)
 		e2:SetTarget(Auxiliary.reptg)
-		a:RegisterEffect(e2)
+		fc:RegisterEffect(e2)
 	end
 end
 function ActionDuel.condition(e,tp,eg,ep,ev,re,r,rp,chk)
