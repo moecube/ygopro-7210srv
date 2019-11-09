@@ -38,7 +38,7 @@ function ActionDuel.activate(e,tp,eg,ep,ev,re,r,rp)
 	local dk1=Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)
 	local dk2=Duel.GetFieldGroupCount(1-tp,LOCATION_DECK,0)
 	if dk1>0 then
-		for t=1,dk1 do
+		for t=1,math.min(dk1,3) do
 			if Duel.SelectYesNo(tp,aux.Stringid(30539496,3)) then
 				d1=d1+1
 			else
@@ -47,7 +47,7 @@ function ActionDuel.activate(e,tp,eg,ep,ev,re,r,rp)
 		end
 	end
 	if dk2>0 then
-		for t=1,dk2 do
+		for t=1,math.min(dk2,3) do
 			if Duel.SelectYesNo(1-tp,aux.Stringid(30539496,3)) then
 				d2=d2+1
 			else
@@ -56,7 +56,7 @@ function ActionDuel.activate(e,tp,eg,ep,ev,re,r,rp)
 		end
 	end
 	local rg1=Duel.GetDecktopGroup(tp,d1)
-	local rg2=Duel.GetDecktopGroup(tp,d2)
+	local rg2=Duel.GetDecktopGroup(1-tp,d2)
 	Duel.Remove(rg1,POS_FACEDOWN,REASON_EFFECT)
 	Duel.Remove(rg2,POS_FACEDOWN,REASON_EFFECT)
 	if d1==d2 then
