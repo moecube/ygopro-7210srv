@@ -4,7 +4,7 @@ ActionDuel = {}
 function ActionDuel.Load_Action_Duel()
 	for p=0,1 do
 		local fc=Duel.CreateToken(p,19162134)
-		Duel.MoveToField(fc,p,p,LOCATION_SZONE,POS_FACEUP,true)
+		Duel.MoveToField(fc,p,p,LOCATION_SZONE,POS_FACEDOWN,true)
 		-- effect
 		local e1=Effect.CreateEffect(fc)
 		e1:SetCategory(CATEGORY_REMOVE)
