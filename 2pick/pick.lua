@@ -27,7 +27,7 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 local combo_pack=require("./2pick/combo")
-local ActionDuel=require("./2pick/actionduel")
+--local ActionDuel=require("./2pick/actionduel")
 
 function Auxiliary.SplitData(inputstr)
 	local t={}
@@ -367,7 +367,7 @@ function Auxiliary.StartPick(e)
 	-- end
 	
 	Auxiliary.SaveDeck()
-	ActionDuel.Load_Action_Duel()
+	--ActionDuel.Load_Action_Duel()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			Duel.ShuffleDeck(p)
