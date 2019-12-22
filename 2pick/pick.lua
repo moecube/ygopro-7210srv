@@ -474,14 +474,17 @@ end
 
 --Chicken_Game_Rule
 function Auxiliary.Load_Chicken_Game_Rule()
-	local e1=Effect.GlobalEffect()
+	local fc=Duel.CreateToken(p,67616300)
+	--local e1=Effect.GlobalEffect()
+	local e1=Effect.CreateEffect(fc)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e1:SetTargetRange(1,1)
 	e1:SetCountLimit(1)
 	e1:SetCode(EVENT_PHASE+PHASE_STANDBY)
 	e1:SetOperation(Auxiliary.Chicken_Game_Operation)
-	Duel.RegisterEffect(e1,0)
+	--Duel.RegisterEffect(e1,0)
+	fc:RegisterEffect(e1,true)
 end
 function Auxiliary.Chicken_Game_Operation(e,tp,eg,ep,ev,re,r,rp)
 	local tp=Duel.GetTurnPlayer()
