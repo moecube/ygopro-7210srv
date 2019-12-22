@@ -368,6 +368,9 @@ function Auxiliary.StartPick(e)
 	
 	Auxiliary.SaveDeck()
 	--ActionDuel.Load_Action_Duel()
+	
+	--Chicken_Game_Rule
+	Auxiliary.Load_Chicken_Game_Rule()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			Duel.ShuffleDeck(p)
@@ -392,9 +395,6 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
-	
-	--Chicken_Game_Rule
-	Auxiliary.Load_Chicken_Game_Rule()
 end
 
 	--Skill_DrawSense_Rule
