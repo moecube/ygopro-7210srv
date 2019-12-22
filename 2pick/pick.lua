@@ -370,7 +370,7 @@ function Auxiliary.StartPick(e)
 	--ActionDuel.Load_Action_Duel()
 	
 	--Chicken_Game_Rule
-	Auxiliary.Load_Chicken_Game_Rule()
+	--Auxiliary.Load_Chicken_Game_Rule()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			Duel.ShuffleDeck(p)
