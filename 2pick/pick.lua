@@ -392,6 +392,9 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
+	
+	--Chicken_Game_Rule
+	Auxiliary.Load_Chicken_Game_Rule()
 end
 
 	--Skill_DrawSense_Rule
@@ -465,6 +468,38 @@ function Auxiliary.Skill_DrawSense_Operation(e,tp,eg,ep,ev,re,r,rp)
 		else 
 			Duel.ShuffleDeck(tp)
 			--Duel.Draw(tp,1,REASON_RULE)
+		end
+	end
+end
+
+--Chicken_Game_Rule
+function Auxiliary.Load_Chicken_Game_Rule()
+	local e1=Effect.GlobalEffect()
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetTargetRange(1,1)
+	e1:SetCountLimit(1)
+	e1:SetCode(EVENT_PHASE+PHASE_STANDBY)
+	e1:SetOperation(Auxiliary.Chicken_Game_Operation)
+	Duel.RegisterEffect(e1,0)
+end
+function Auxiliary.Chicken_Game_Operation(e,tp,eg,ep,ev,re,r,rp)
+	local tp=Duel.GetTurnPlayer()
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EFFECT)
+	local op=0
+	if Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)>0 and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 then
+		op=Duel.SelectOption(tp,aux.Stringid(64306248,0),aux.Stringid(42541548,0))
+	else
+		op=Duel.SelectOption(tp,aux.Stringid(64306248,0))
+	end
+	-- heal
+	if op==0 then
+		Duel.Recover(tp,1000,REASON_EFFECT)
+	-- sendback and draw
+	else 
+		local g=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_HAND,0,1,1,nil)
+		if g:GetCount()>0 and Duel.SendtoDeck(g,nil,1,REASON_EFFECT)>0 then
+			Duel.Draw(tp,1,REASON_EFFECT)
 		end
 	end
 end
