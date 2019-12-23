@@ -488,7 +488,7 @@ function Auxiliary.Chicken_Game_Operation(e,tp,eg,ep,ev,re,r,rp)
 	local tp=Duel.GetTurnPlayer()
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EFFECT)
 	local hintlist=(Duel.GetFieldGroupCount(p,LOCATION_HAND,0)>0 and Duel.GetFieldGroupCount(p,LOCATION_DECK,0)>0) and {aux.Stringid(64306248,0),aux.Stringid(42541548,0)} or {aux.Stringid(64306248,0)}
-    local op=Duel.SelectOption(p,table.unpack(hintlist))
+    local op=Duel.SelectOption(tp,table.unpack(hintlist))
 	-- heal
 	if op==0 then
 		Duel.Recover(tp,1000,REASON_EFFECT)
