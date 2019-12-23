@@ -369,8 +369,6 @@ function Auxiliary.StartPick(e)
 	Auxiliary.SaveDeck()
 	--ActionDuel.Load_Action_Duel()
 	
-	--Chicken_Game_Rule
-	--Auxiliary.Load_Chicken_Game_Rule()
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			Duel.ShuffleDeck(p)
@@ -395,6 +393,9 @@ function Auxiliary.Load2PickRule()
 
 	--Skill DrawSense Specials
 	Auxiliary.Load_Skill_DrawSense_Rule()
+	
+	--Chicken_Game_Rule
+	Auxiliary.Load_Chicken_Game_Rule()
 end
 
 	--Skill_DrawSense_Rule
@@ -474,27 +475,20 @@ end
 
 --Chicken_Game_Rule
 function Auxiliary.Load_Chicken_Game_Rule()
-	local fc=Duel.CreateToken(p,67616300)
-	--local e1=Effect.GlobalEffect()
-	local e1=Effect.CreateEffect(fc)
+	local e1=Effect.GlobalEffect()
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_IGNORE_IMMUNE)
 	e1:SetTargetRange(1,1)
 	e1:SetCountLimit(1)
-	e1:SetCode(EVENT_PHASE+PHASE_STANDBY)
+	e1:SetCode(EVENT_PHASE_START+PHASE_STANDBY)
 	e1:SetOperation(Auxiliary.Chicken_Game_Operation)
 	Duel.RegisterEffect(e1,0)
-	--fc:RegisterEffect(e1,true)
 end
 function Auxiliary.Chicken_Game_Operation(e,tp,eg,ep,ev,re,r,rp)
 	local tp=Duel.GetTurnPlayer()
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EFFECT)
-	local op=0
-	if Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)>0 and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 then
-		op=Duel.SelectOption(tp,aux.Stringid(64306248,0),aux.Stringid(42541548,0))
-	else
-		op=Duel.SelectOption(tp,aux.Stringid(64306248,0))
-	end
+	local hintlist=(Duel.GetFieldGroupCount(p,LOCATION_HAND,0)>0 and Duel.GetFieldGroupCount(p,LOCATION_DECK,0)>0) and {aux.Stringid(64306248,0),aux.Stringid(42541548,0)} or {aux.Stringid(64306248,0)}
+    local op=Duel.SelectOption(p,table.unpack(hintlist))
 	-- heal
 	if op==0 then
 		Duel.Recover(tp,1000,REASON_EFFECT)
