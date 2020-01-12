@@ -86,6 +86,10 @@ bool MenuHandler::OnEvent(const irr::SEvent& event) {
 						soundManager.PlaySoundEffect(SOUND_INFO);
 						mainGame->env->addMessageBox(L"", dataManager.GetSysString(1412));
 						mainGame->gMutex.unlock();
+						if (auto_watch_mode) {
+							mainGame->actionSignal.Wait(2000);
+							mainGame->device->closeDevice();
+						}
 						break;
 					} else {
 						sockaddr_in * sin = ((struct sockaddr_in *)answer->ai_addr);
@@ -562,23 +566,6 @@ bool MenuHandler::OnEvent(const irr::SEvent& event) {
 			}
 			break;
 		}
-		case irr::gui::EGET_COMBO_BOX_CHANGED: {
-			switch(id) {
-			case COMBOBOX_HP_CATEGORY: {
-				int catesel = mainGame->cbCategorySelect->getSelected();
-				if(catesel == 3) {
-					catesel = 2;
-					mainGame->cbCategorySelect->setSelected(2);
-				}
-				if(catesel >= 0) {
-					mainGame->RefreshDeck(mainGame->cbCategorySelect, mainGame->cbDeckSelect);
-					mainGame->cbDeckSelect->setSelected(0);
-				}
-				break;
-			}
-			}
-			break;
-		}
 		case irr::gui::EGET_CHECKBOX_CHANGED: {
 			switch(id) {
 			case CHECKBOX_HP_READY: {
@@ -602,8 +589,25 @@ bool MenuHandler::OnEvent(const irr::SEvent& event) {
 				}
 				break;
 			}
-			case CHECKBOX_BOT_OLD_RULE: {
+			}
+			break;
+		}
+		case irr::gui::EGET_COMBO_BOX_CHANGED: {
+			switch(id) {
+			case COMBOBOX_BOT_RULE: {
 				mainGame->RefreshBot();
+				break;
+			}
+			case COMBOBOX_HP_CATEGORY: {
+				int catesel = mainGame->cbCategorySelect->getSelected();
+				if(catesel == 3) {
+					catesel = 2;
+					mainGame->cbCategorySelect->setSelected(2);
+				}
+				if(catesel >= 0) {
+					mainGame->RefreshDeck(mainGame->cbCategorySelect, mainGame->cbDeckSelect);
+					mainGame->cbDeckSelect->setSelected(0);
+				}
 				break;
 			}
 			}

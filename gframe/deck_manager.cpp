@@ -79,12 +79,21 @@ int DeckManager::CheckDeck(Deck& deck, int lfhash, bool allow_ocg, bool allow_tc
 	if(!list)
 		return 0;
 	int dc = 0;
+#ifdef YGOPRO_SERVER_MODE
+	if(deck.main.size() < DECKCOUNT_MAIN_MIN || deck.main.size() > DECKCOUNT_MAIN_MAX)
+		return (DECKERROR_MAINCOUNT << 28) + deck.main.size();
+	if(deck.extra.size() > DECKCOUNT_SIDE)
+		return (DECKERROR_EXTRACOUNT << 28) + deck.extra.size();
+	if(deck.side.size() > DECKCOUNT_EXTRA)
+		return (DECKERROR_SIDECOUNT << 28) + deck.side.size();
+#else
 	if(deck.main.size() < 40 || deck.main.size() > 60)
 		return (DECKERROR_MAINCOUNT << 28) + deck.main.size();
 	if(deck.extra.size() > 15)
 		return (DECKERROR_EXTRACOUNT << 28) + deck.extra.size();
 	if(deck.side.size() > 15)
 		return (DECKERROR_SIDECOUNT << 28) + deck.side.size();
+#endif
 
 	for(size_t i = 0; i < deck.main.size(); ++i) {
 		code_pointer cit = deck.main[i];
@@ -148,9 +157,23 @@ int DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 		}
 		if(cd.type & TYPE_TOKEN)
 			continue;
-		else if(cd.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK) && deck.extra.size() < 15) {
-			deck.extra.push_back(dataManager.GetCodePointer(code));	//verified by GetData()
-		} else if(deck.main.size() < 60) {
+		else if(cd.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) {
+			if(
+#ifdef YGOPRO_SERVER_MODE
+			deck.extra.size() >= DECKCOUNT_EXTRA
+#else
+			deck.extra.size() >= 15
+#endif
+			)
+				continue;
+			deck.extra.push_back(dataManager.GetCodePointer(code)); //verified by GetData()
+		} else 
+#ifdef YGOPRO_SERVER_MODE
+		if(deck.main.size() < DECKCOUNT_MAIN_MAX)
+#else
+		if(deck.main.size() < 60)
+#endif
+		{
 			deck.main.push_back(dataManager.GetCodePointer(code));
 		}
 	}
@@ -162,7 +185,11 @@ int DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 		}
 		if(cd.type & TYPE_TOKEN)
 			continue;
+#ifdef YGOPRO_SERVER_MODE
+		if(deck.side.size() < DECKCOUNT_SIDE)
+#else
 		if(deck.side.size() < 15)
+#endif
 			deck.side.push_back(dataManager.GetCodePointer(code));	//verified by GetData()
 	}
 	return errorcode;
@@ -217,9 +244,15 @@ void DeckManager::GetCategoryPath(wchar_t* ret, int index, const wchar_t* text) 
 void DeckManager::GetDeckFile(wchar_t* ret, irr::gui::IGUIComboBox* cbCategory, irr::gui::IGUIComboBox* cbDeck) {
 	wchar_t filepath[256];
 	wchar_t catepath[256];
-	GetCategoryPath(catepath, cbCategory->getSelected(), cbCategory->getText());
-	myswprintf(filepath, L"%ls/%ls.ydk", catepath, cbDeck->getItem(cbDeck->getSelected()));
-	BufferIO::CopyWStr(filepath, ret, 256);
+	wchar_t* deckname = (wchar_t*)cbDeck->getItem(cbDeck->getSelected());
+	if(deckname != NULL) {
+		GetCategoryPath(catepath, cbCategory->getSelected(), cbCategory->getText());
+		myswprintf(filepath, L"%ls/%ls.ydk", catepath, deckname);
+		BufferIO::CopyWStr(filepath, ret, 256);
+	}
+	else {
+		BufferIO::CopyWStr(L"", ret, 256);
+	}
 }
 bool DeckManager::LoadDeck(irr::gui::IGUIComboBox* cbCategory, irr::gui::IGUIComboBox* cbDeck) {
 	wchar_t filepath[256];
