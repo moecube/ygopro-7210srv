@@ -395,7 +395,7 @@ function Auxiliary.Load2PickRule()
 	Auxiliary.Load_Skill_DrawSense_Rule()
 	
 	--Chicken_Game_Rule
-	Auxiliary.Load_Chicken_Game_Rule()
+	--Auxiliary.Load_Chicken_Game_Rule()
 end
 
 	--Skill_DrawSense_Rule
