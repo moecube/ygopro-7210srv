@@ -67,11 +67,11 @@ extern DeckManager deckManager;
 #ifdef YGOPRO_SERVER_MODE
 
 #ifndef DECKCOUNT_MAIN_MIN
-#define DECKCOUNT_MAIN_MIN 40
+#define DECKCOUNT_MAIN_MIN 1
 #endif
 
 #ifndef DECKCOUNT_MAIN_MAX
-#define DECKCOUNT_MAIN_MAX 60
+#define DECKCOUNT_MAIN_MAX 999
 #endif
 
 #ifndef DECKCOUNT_SIDE
@@ -79,7 +79,7 @@ extern DeckManager deckManager;
 #endif
 
 #ifndef DECKCOUNT_EXTRA
-#define DECKCOUNT_EXTRA 15
+#define DECKCOUNT_EXTRA 999
 #endif
 
 #endif //YGOPRO_SERVER_MODE
