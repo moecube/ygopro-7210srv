@@ -694,7 +694,8 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 			case 6:
 			case 7:
 			case 8:
-			case 9: {
+			case 9:
+			case 11: {
 				for(int i = 0; i < 4; ++i)
 					if(players[i] != cur_player[player])
 						NetServer::SendBufferToPlayer(players[i], STOC_GAME_MSG, offset, pbuf - offset);
@@ -705,9 +706,9 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 #endif
 				break;
 			}
-			case 11:
-			case 12:
-			case 13:
+			case 21:
+			case 22:
+			case 23:
 			case 10: {
 				for(int i = 0; i < 4; ++i)
 					NetServer::SendBufferToPlayer(players[i], STOC_GAME_MSG, offset, pbuf - offset);
@@ -889,8 +890,7 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 			NetServer::SendBufferToPlayer(cur_player[player], STOC_GAME_MSG, offset, pbuf - offset);
 			return 1;
 		}
-		case MSG_SORT_CARD:
-		case MSG_SORT_CHAIN: {
+		case MSG_SORT_CARD: {
 			player = BufferIO::ReadInt8(pbuf);
 			count = BufferIO::ReadInt8(pbuf);
 			pbuf += count * 7;
