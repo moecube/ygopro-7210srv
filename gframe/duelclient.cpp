@@ -77,9 +77,6 @@ bool DuelClient::StartClient(unsigned int ip, unsigned short port, bool create_g
 	return true;
 }
 void DuelClient::ConnectTimeout(evutil_socket_t fd, short events, void* arg) {
-	if (auto_watch_mode) {
-		mainGame->device->closeDevice();
-	}
 	if(connect_state == 0x7)
 		return;
 	if(!is_closing) {
@@ -505,6 +502,19 @@ void DuelClient::HandleSTOCPacketLan(char* data, unsigned int len) {
 		mainGame->dField.Clear();
 		mainGame->stHintMsg->setText(dataManager.GetSysString(1409));
 		mainGame->stHintMsg->setVisible(true);
+		mainGame->gMutex.unlock();
+		break;
+	}
+	case STOC_DECK_COUNT: {
+		mainGame->gMutex.lock();
+		int deckc = BufferIO::ReadInt16(pdata);
+		int extrac = BufferIO::ReadInt16(pdata);
+		int sidec = BufferIO::ReadInt16(pdata);
+		mainGame->dField.Initial(0, deckc, extrac);
+		deckc = BufferIO::ReadInt16(pdata);
+		extrac = BufferIO::ReadInt16(pdata);
+		sidec = BufferIO::ReadInt16(pdata);
+		mainGame->dField.Initial(1, deckc, extrac);
 		mainGame->gMutex.unlock();
 		break;
 	}
@@ -1330,6 +1340,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		mainGame->WaitFrameSignal(40);
 		mainGame->showcard = 0;
 		mainGame->gMutex.lock();
+		mainGame->dField.Clear();
 		int playertype = BufferIO::ReadInt8(pbuf);
 		mainGame->dInfo.isFirst =  (playertype & 0xf) ? false : true;
 		if(playertype & 0xf0)
@@ -1632,6 +1643,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		int c, l, s, ss;
 		unsigned int code;
 		bool panelmode = false;
+		int handcount = 0;
 		bool select_ready = mainGame->dField.select_min == 0;
 		mainGame->dField.select_ready = select_ready;
 		ClientCard* pcard;
@@ -1657,6 +1669,11 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			pcard->is_selected = false;
 			if (l & 0xf1)
 				panelmode = true;
+			if(l & LOCATION_HAND) {
+				handcount++;
+				if(handcount >= 10)
+					panelmode = true;
+			}
 		}
 		std::sort(mainGame->dField.selectable_cards.begin(), mainGame->dField.selectable_cards.end(), ClientCard::client_card_sort);
 		if(select_hint)
@@ -1871,9 +1888,11 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 	}
 	case MSG_SELECT_PLACE:
 	case MSG_SELECT_DISFIELD: {
-		/*int selecting_player = */BufferIO::ReadInt8(pbuf);
+		int selecting_player = BufferIO::ReadInt8(pbuf);
 		mainGame->dField.select_min = BufferIO::ReadInt8(pbuf);
 		mainGame->dField.selectable_field = ~BufferIO::ReadInt32(pbuf);
+		if(selecting_player == mainGame->LocalPlayer(1))
+			mainGame->dField.selectable_field = (mainGame->dField.selectable_field >> 16) | (mainGame->dField.selectable_field << 16);
 		mainGame->dField.selected_field = 0;
 		unsigned char respbuf[64];
 		int pzone = 0;
@@ -2146,12 +2165,6 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			pcard = *(mainGame->dField.deck[player].rbegin() + i);
 			if (code != 0)
 				pcard->SetCode(code);
-			if (auto_watch_mode && code > 0) {
-				mainGame->showcardcode = code;
-				mainGame->showcarddif = 0;
-				mainGame->showcardp = 0;
-				mainGame->showcard = 4;
-			}
 		}
 		if(mainGame->dInfo.isReplaySkiping)
 			return true;
@@ -2172,8 +2185,17 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			else pcard->dRot = irr::core::vector3df(0, 0, 0);
 			pcard->is_moving = true;
 			pcard->aniFrame = 5;
+			if (auto_watch_mode && code > 0) {
+				mainGame->showcardcode = pcard->code;
+				mainGame->showcarddif = 0;
+				mainGame->showcardp = 0;
+				mainGame->showcard = 4;
+			}
 			mainGame->WaitFrameSignal(45);
 			mainGame->dField.MoveCard(pcard, 5);
+			if (auto_watch_mode) {
+				mainGame->showcard = 0;
+			}
 			mainGame->WaitFrameSignal(5);
 		}
 		return true;
@@ -2190,12 +2212,6 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			pcard = *(mainGame->dField.extra[player].rbegin() + i + mainGame->dField.extra_p_count[player]);
 			if (code != 0)
 				pcard->SetCode(code);
-			if (auto_watch_mode && code > 0) {
-				mainGame->showcardcode = code;
-				mainGame->showcarddif = 0;
-				mainGame->showcardp = 0;
-				mainGame->showcard = 4;
-			}
 		}
 		if(mainGame->dInfo.isReplaySkiping)
 			return true;
@@ -2215,8 +2231,17 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			pcard->dRot = irr::core::vector3df(0, 3.14159f / 5.0f, 0);
 			pcard->is_moving = true;
 			pcard->aniFrame = 5;
+			if (auto_watch_mode && pcard->code > 0) {
+				mainGame->showcardcode = pcard->code;
+				mainGame->showcarddif = 0;
+				mainGame->showcardp = 0;
+				mainGame->showcard = 4;
+			}
 			mainGame->WaitFrameSignal(45);
 			mainGame->dField.MoveCard(pcard, 5);
+			if (auto_watch_mode) {
+				mainGame->showcard = 0;
+			}
 			mainGame->WaitFrameSignal(5);
 		}
 		return true;
@@ -2247,12 +2272,6 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 				pcard = mainGame->dField.GetCard(c, l, s);
 			if (code != 0)
 				pcard->SetCode(code);
-			if (auto_watch_mode && code > 0) {
-				mainGame->showcardcode = code;
-				mainGame->showcarddif = 0;
-				mainGame->showcardp = 0;
-				mainGame->showcard = 4;
-			}
 			mainGame->gMutex.lock();
 			myswprintf(textBuffer, L"*[%ls]", dataManager.GetName(code));
 			mainGame->AddLog(textBuffer, code);
@@ -2267,7 +2286,16 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 					else pcard->dRot = irr::core::vector3df(0, 3.14159f / 5.0f, 0);
 					pcard->is_moving = true;
 					pcard->aniFrame = 5;
+					if (auto_watch_mode && pcard->code > 0) {
+						mainGame->showcardcode = pcard->code;
+						mainGame->showcarddif = 0;
+						mainGame->showcardp = 0;
+						mainGame->showcard = 4;
+					}
 					mainGame->WaitFrameSignal(45);
+					if (auto_watch_mode) {
+						mainGame->showcard = 0;
+					}
 					mainGame->dField.MoveCard(pcard, 5);
 					mainGame->WaitFrameSignal(5);
 				} else {
@@ -2307,10 +2335,19 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 					pcard->aniFrame = 5;
 				}
 			}
+			if (auto_watch_mode && pcard->code > 0) {
+				mainGame->showcardcode = pcard->code;
+				mainGame->showcarddif = 0;
+				mainGame->showcardp = 0;
+				mainGame->showcard = 4;
+			}
 			if (mainGame->dInfo.isReplay)
 				mainGame->WaitFrameSignal(30);
 			else
 				mainGame->WaitFrameSignal(90);
+			if (auto_watch_mode) {
+				mainGame->showcard = 0;
+			}
 			for(size_t i = 0; i < field_confirm.size(); ++i) {
 				pcard = field_confirm[i];
 				mainGame->dField.MoveCard(pcard, 5);
@@ -3474,12 +3511,6 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		int s = BufferIO::ReadInt8(pbuf);
 		int count = BufferIO::ReadInt16(pbuf);
 		ClientCard* pc = mainGame->dField.GetCard(c, l, s);
-		if (auto_watch_mode && pc->code > 0) {
-			mainGame->showcardcode = pc->code;
-			mainGame->showcarddif = 0;
-			mainGame->showcardp = 0;
-			mainGame->showcard = 2;
-		}
 		if (pc->counters.count(type))
 			pc->counters[type] += count;
 		else pc->counters[type] = count;
@@ -3772,7 +3803,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 	}
 	case MSG_ANNOUNCE_NUMBER: {
 		/*int player = */mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
-		int count = BufferIO::ReadInt8(pbuf);
+		int count = BufferIO::ReadUInt8(pbuf);
 		mainGame->gMutex.lock();
 		mainGame->cbANNumber->clear();
 		bool quickmode = count <= 12;
