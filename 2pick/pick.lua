@@ -27,6 +27,7 @@ local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
 local combo_pack=require("./2pick/combo")
+local Deepthink=require("./2pick/deepthink")
 --local ActionDuel=require("./2pick/actionduel")
 
 function Auxiliary.SplitData(inputstr)
@@ -391,8 +392,11 @@ function Auxiliary.Load2PickRule()
 	e1:SetOperation(Auxiliary.StartPick)
 	Duel.RegisterEffect(e1,0)
 
+	--Skill Deepthink
+	Deepthink.Load_Skill_Deepthink_Rule()
+
 	--Skill DrawSense Specials
-	Auxiliary.Load_Skill_DrawSense_Rule()
+	--Auxiliary.Load_Skill_DrawSense_Rule()
 	
 	--Chicken_Game_Rule
 	--Auxiliary.Load_Chicken_Game_Rule()
