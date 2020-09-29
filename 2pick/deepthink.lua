@@ -18,6 +18,7 @@ function Deepthink.Skill_Deepthink_Condition(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function Deepthink.Skill_Deepthink_Operation(e,tp,eg,ep,ev,re,r,rp)
+	local tp=Duel.GetTurnPlayer()
 	Duel.SortDecktop(tp,tp,2)
 end
 
