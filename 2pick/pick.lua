@@ -30,11 +30,12 @@ local combo_pack=require("./2pick/combo")
 local Deepthink=require("./2pick/deepthink")
 --local ActionDuel=require("./2pick/actionduel")
 
-{[96570609]="SR01_Monarch.cdb",
- [60681103]="SR02_FelgrandDragon.cdb",
- [44874522]="SR03_AncientGear.cdb",
- [18940556]="SR04_UltimateTyranno.cdb",
- [22091647]="SR09_Gearfried.cdb",
+deckMasters = {
+	[96570609]="SR01_Monarch.cdb",
+	[60681103]="SR02_FelgrandDragon.cdb",
+	[44874522]="SR03_AncientGear.cdb",
+	[18940556]="SR04_UltimateTyranno.cdb",
+	[22091647]="SR09_Gearfried.cdb",
 }
 
 
