@@ -105,6 +105,7 @@ function Auxiliary.LoadCardPools(p)
 	Duel.ConfirmCards(p,deckMasterCardGroup)
 	local targetCardCode=deckMasterCardGroup:Select(p,1,1,nil):GetFirst():GetOriginalCode()
 	local targetFilename=deckMasters[targetCardCode]
+	Duel.Exile(deckMasterCardGroup,REASON_RULE)
 	Auxiliary.LoadDB(p,targetFilename)
 end
 
