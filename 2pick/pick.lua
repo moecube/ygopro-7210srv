@@ -26,6 +26,7 @@ local xyz_plain={[0]={},[1]={}}
 local xyz_adv={[0]={},[1]={}}
 
 local extra_fixed={62709239,95169481}
+require("./2pick/underscore")
 local combo_pack=require("./2pick/combo")
 local Deepthink=require("./2pick/deepthink")
 --local ActionDuel=require("./2pick/actionduel")
@@ -94,16 +95,17 @@ function Auxiliary.LoadDB(p,pool)
 	file:close()
 end
 --to do: multi card pools
-function Auxiliary.LoadCardPools()
-	local pool_list={}
-	local file=io.popen("ls 2pick/*.cdb")
-	for pool in file:lines() do
-		table.insert(pool_list,pool)
+function Auxiliary.LoadCardPools(p)
+	local deckMasterCardGroup=Group.CreateGroup()
+	for deckMasterCode,deckMasterFilename in pairs(deckMasters) do
+		local c=Duel.CreateToken(p,deckMasterCode)
+		deckMasterCardGroup:AddCard(c)
 	end
-	file:close()
-	for p=0,1 do
-		Auxiliary.LoadDB(p,pool_list[math.random(#pool_list)])
-	end
+	Duel.SendtoDeck(deckMasterCardGroup,nil,0,REASON_RULE)
+	Duel.ConfirmCards(p,deckMasterCardGroup)
+	local targetCardCode=deckMasterCardGroup:Select(p,1,1,nil):GetFirst():GetOriginalCode()
+	local targetFilename=deckMasters[targetCardCode]
+	Auxiliary.LoadDB(p,targetFilename)
 end
 
 function Auxiliary.SaveDeck()
@@ -275,6 +277,7 @@ function Auxiliary.StartPick(e)
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			local g=Duel.GetFieldGroup(p,0xff,0)
 			Duel.Exile(g,REASON_RULE)
+			Auxiliary.LoadCardPools(p)
 		end
 	end
 --[[
@@ -393,7 +396,7 @@ end
 
 function Auxiliary.Load2PickRule()
 	math.randomseed(os.time())
-	Auxiliary.LoadCardPools()
+	--Auxiliary.LoadCardPools()
 	local e1=Effect.GlobalEffect()
 	e1:SetType(EFFECT_TYPE_FIELD | EFFECT_TYPE_CONTINUOUS)
 	e1:SetCode(EVENT_ADJUST)
