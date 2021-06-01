@@ -32,11 +32,18 @@ local Deepthink=require("./2pick/deepthink")
 --local ActionDuel=require("./2pick/actionduel")
 
 deckMasters = {
-	[96570609]="./2pick/STPick/SR01_Monarch.cdb",
-	[60681103]="./2pick/STPick/SR02_FelgrandDragon.cdb",
-	[44874522]="./2pick/STPick/SR03_AncientGear.cdb",
-	[18940556]="./2pick/STPick/SR04_UltimateTyranno.cdb",
-	[22091647]="./2pick/STPick/SR09_Gearfried.cdb",
+	[59160188]="./2pick/STPick/Vol01_ShadowDistopia.cdb",
+	[4064256]="./2pick/STPick/Vol01_UndeadWorld.cdb",
+	[87835759]="./2pick/STPick/Vol01_DKnightCreation.cdb",
+	[17427333]="./2pick/STPick/Vol01_EMRailgun.cdb",
+	[80758812]="./2pick/STPick/Vol01_GeminiAblation.cdb",
+	[57666212]="./2pick/STPick/Vol01_LightMornarch.cdb",
+	[59419719]="./2pick/STPick/Vol01_FossilFusion.cdb",
+	[89055154]="./2pick/STPick/Vol01_PowerAngelValkyria.cdb",
+	[20036055]="./2pick/STPick/Vol01_TravelerWithBA.cdb",
+	[44822037]="./2pick/STPick/Vol01_AStatueAzurune.cdb",
+
+	--[]="./2pick/STPick/.cdb",
 }
 
 
@@ -101,11 +108,12 @@ function Auxiliary.LoadCardPools(p)
 		local c=Duel.CreateToken(p,deckMasterCode)
 		deckMasterCardGroup:AddCard(c)
 	end
-	Duel.SendtoDeck(deckMasterCardGroup,nil,0,REASON_RULE)
-	Duel.ConfirmCards(p,deckMasterCardGroup)
-	local targetCardCode=deckMasterCardGroup:Select(p,1,1,nil):GetFirst():GetOriginalCode()
+	local deckMasterRandomPick=deckMasterCardGroup:RandomSelect(p,3)
+	Duel.SendtoDeck(deckMasterRandomPick,nil,0,REASON_RULE)
+	Duel.ConfirmCards(p,deckMasterRandomPick)
+	local targetCardCode=deckMasterRandomPick:Select(p,1,1,nil):GetFirst():GetOriginalCode()
 	local targetFilename=deckMasters[targetCardCode]
-	Duel.Exile(deckMasterCardGroup,REASON_RULE)
+	Duel.Exile(deckMasterRandomPick,REASON_RULE)
 	Auxiliary.LoadDB(p,targetFilename)
 end
 
@@ -278,7 +286,7 @@ function Auxiliary.StartPick(e)
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			local g=Duel.GetFieldGroup(p,0xff,0)
 			Duel.Exile(g,REASON_RULE)
-			Auxiliary.LoadCardPools(p)
+			--Auxiliary.LoadCardPools(p)
 		end
 	end
 --[[
@@ -308,60 +316,85 @@ function Auxiliary.StartPick(e)
 		end
 	end
 ]]--
-	for i=1,5 do
-		local lists={[1]=main_monster,[3]=main_spell,[4]=main_trap}
-		local lists_count={[1]=4,[3]=2,[4]=2}
-		if i==1 or i==2 then
-			lists[1]=main_plain
-			lists_count[1]=2
-			lists[2]=main_adv
-			lists_count[2]=2
-		end
-		for p=0,1 do
-			Auxiliary.ArbitraryPick(p,4,lists,lists_count)
-		end
+
+	--Adding deckMasters, sorted as ot=4
+	for p=0,1 do
+		local lists=main_new
+		Auxiliary.ArbitraryPick(p,1,lists,1,copy)
 	end
-	
-	-- combo pick
-	for t=2,0,-1 do
-		local reroll=t>0
-		if Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack,reroll) then
-			break
-		end
-	end
-	for t=1,0,-1 do
-		local reroll=t>0
-		if Auxiliary.SinglePick(1,main,0,nil,nil,false,false,nil,combo_pack.pack,reroll) then
-			break
-		end
-	end
-	
-	for tp,list in pairs(extra_sp) do
-		if tp~=TYPE_FUSION then
+
+	for i=1,4 do
+		local lists={[1]=main_monster,[3]=main_spell,[4]=main_trap,[7]=extra_sp}
+		local Sp_count=0
+		for index,list in pairs(main_spell) do Sp_count = Sp_count + 1 end
+		local Tp_count=0
+		for index,list in pairs(main_trap) do Tp_count = Tp_count + 1 end
+		if Sp_count >= Tp_count then
+			local lists_count={[1]=4,[3]=3,[4]=2,[7]=2}
+			if i==1 or i==2 then
+				lists[1]=main_plain
+				lists_count[1]=2
+				lists[2]=main_adv
+				lists_count[2]=2
+			end
 			for p=0,1 do
-				lists ={[1]=list}
-				counts={[1]=8}
-				lv_diff=false
-				if tp==TYPE_XYZ then
-					lists[1]=xyz_plain
-					counts[1]=6
-					lists[2]=xyz_adv
-					counts[2]=2
-				elseif tp==TYPE_SYNCHRO then
-					counts[1]=4
-					lists[2]=list
-					counts[2]=4
-					lv_diff=true
-				end
-				Auxiliary.ArbitraryPick(p,4,lists,counts,false,lv_diff)
+				Auxiliary.ArbitraryPick(p,6,lists,lists_count,copy)
+			end
+		else
+			local lists_count={[1]=4,[3]=2,[4]=3,[7]=2}
+			if i==1 or i==2 then
+				lists[1]=main_plain
+				lists_count[1]=2
+				lists[2]=main_adv
+				lists_count[2]=2
+			end
+			for p=0,1 do
+				Auxiliary.ArbitraryPick(p,6,lists,lists_count,copy)
 			end
 		end
 	end
-	for p=0,1 do
-		lists ={[1]=extra}
-		counts={[1]=6}
-		Auxiliary.ArbitraryPick(p,4,lists,counts,false,false,extra_fixed)
-	end
+
+
+	-- -- combo pick
+	-- for t=2,0,-1 do
+	-- 	local reroll=t>0
+	-- 	if Auxiliary.SinglePick(0,main,0,nil,nil,false,false,nil,combo_pack.pack,reroll) then
+	-- 		break
+	-- 	end
+	-- end
+	-- for t=1,0,-1 do
+	-- 	local reroll=t>0
+	-- 	if Auxiliary.SinglePick(1,main,0,nil,nil,false,false,nil,combo_pack.pack,reroll) then
+	-- 		break
+	-- 	end
+	-- end
+	
+	-- for tp,list in pairs(extra_sp) do
+	-- 	if tp~=TYPE_FUSION then
+	-- 		for p=0,1 do
+	-- 			lists ={[1]=list}
+	-- 			counts={[1]=8}
+	-- 			lv_diff=false
+	-- 			if tp==TYPE_XYZ then
+	-- 				lists[1]=xyz_plain
+	-- 				counts[1]=6
+	-- 				lists[2]=xyz_adv
+	-- 				counts[2]=2
+	-- 			elseif tp==TYPE_SYNCHRO then
+	-- 				counts[1]=4
+	-- 				lists[2]=list
+	-- 				counts[2]=4
+	-- 				lv_diff=true
+	-- 			end
+	-- 			Auxiliary.ArbitraryPick(p,4,lists,counts,false,lv_diff)
+	-- 		end
+	-- 	end
+	-- end
+	-- for p=0,1 do
+	-- 	lists ={[1]=extra}
+	-- 	counts={[1]=6}
+	-- 	Auxiliary.ArbitraryPick(p,4,lists,counts,false,false,extra_fixed)
+	-- end
 	
 	-- -- XXYYZZ Additional Picks
 	-- xyz_list={91998119,91998120,91998121}
@@ -386,6 +419,8 @@ function Auxiliary.StartPick(e)
 	for p=0,1 do
 		if Duel.IsPlayerNeedToPickDeck(p) then
 			Duel.ShuffleDeck(p)
+			local lists=main_new
+			Auxiliary.ArbitraryPick(p,1,lists,1)
 			Duel.ResetTimeLimit(p)
 		end
 	end
@@ -397,7 +432,7 @@ end
 
 function Auxiliary.Load2PickRule()
 	math.randomseed(os.time())
-	--Auxiliary.LoadCardPools()
+	Auxiliary.LoadCardPools()
 	local e1=Effect.GlobalEffect()
 	e1:SetType(EFFECT_TYPE_FIELD | EFFECT_TYPE_CONTINUOUS)
 	e1:SetCode(EVENT_ADJUST)
