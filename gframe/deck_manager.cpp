@@ -72,24 +72,18 @@ const std::unordered_map<int, int>* DeckManager::GetLFListContent(int lfhash) {
 		return &lit->content;
 	return nullptr;
 }
-int DeckManager::IsGameRuleDisallowed(unsigned char hostInfoRule, unsigned int cardOt) {
-	bool allow_ocg = hostInfoRule == 0 || hostInfoRule == 2; // OCG can be used in OCG and OT duels
-	bool allow_tcg = hostInfoRule == 1 || hostInfoRule == 2; // TCG can be used in TCG and OT duels
-	bool allow_ccg = hostInfoRule == 0 || hostInfoRule == 4 || hostInfoRule == 2; // CCG can be used in OCG, CCG and OT duels
-	if(!allow_ocg && (cardOt & 0x3 == 0x1))
+static int checkAvail(int ot, int avail) {
+	if(!!(ot & 0x4))
+		return 0;
+	if((ot & avail) == avail)
+		return 0;
+	if((ot & AVAIL_OCG) && !(avail == AVAIL_OCG))
 		return DECKERROR_OCGONLY;
-	if(!allow_tcg && (cardOt & 0x3 == 0x2))
+	if((ot & AVAIL_TCG) && !(avail == AVAIL_TCG))
 		return DECKERROR_TCGONLY;
-	if(hostInfoRule == 4 && !(cardOt & 0x8) && (cardOt & 0x3)) { // in CCG duels, cards labeled with ither OCG or TCG, but not CCG, would not be allowed.
-		if(cardOt & 0x3 == 0x2) {
-			return DECKERROR_TCGONLY;
-		} else {
-			return DECKERROR_OCGONLY;
-		}
-	}
-	return 0;
+	return DECKERROR_NOTAVAIL;
 }
-int DeckManager::CheckDeck(Deck& deck, int lfhash, unsigned char hostInfoRule) {
+int DeckManager::CheckDeck(Deck& deck, int lfhash, int rule) {
 	std::unordered_map<int, int> ccount;
 	auto list = GetLFListContent(lfhash);
 	if(!list)
@@ -110,10 +104,11 @@ int DeckManager::CheckDeck(Deck& deck, int lfhash, unsigned char hostInfoRule) {
 	if(deck.side.size() > 15)
 		return (DECKERROR_SIDECOUNT << 28) + deck.side.size();
 #endif
-
+	const int rule_map[6] = { AVAIL_OCG, AVAIL_TCG, AVAIL_SC, AVAIL_CUSTOM, AVAIL_OCGTCG, 0 };
+	int avail = rule_map[rule];
 	for(size_t i = 0; i < deck.main.size(); ++i) {
 		code_pointer cit = deck.main[i];
-		const int gameruleDeckError = IsGameRuleDisallowed(hostInfoRule, cit->second.ot);
+		int gameruleDeckError = checkAvail(cit->second.ot, avail);
 		if(gameruleDeckError)
 			return (gameruleDeckError << 28) + cit->first;
 		if(cit->second.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_TOKEN | TYPE_LINK))
@@ -129,7 +124,7 @@ int DeckManager::CheckDeck(Deck& deck, int lfhash, unsigned char hostInfoRule) {
 	}
 	for(size_t i = 0; i < deck.extra.size(); ++i) {
 		code_pointer cit = deck.extra[i];
-		const int gameruleDeckError = IsGameRuleDisallowed(hostInfoRule, cit->second.ot);
+		int gameruleDeckError = checkAvail(cit->second.ot, avail);
 		if(gameruleDeckError)
 			return (gameruleDeckError << 28) + cit->first;
 		int code = cit->second.alias ? cit->second.alias : cit->first;
@@ -143,7 +138,7 @@ int DeckManager::CheckDeck(Deck& deck, int lfhash, unsigned char hostInfoRule) {
 	}
 	for(size_t i = 0; i < deck.side.size(); ++i) {
 		code_pointer cit = deck.side[i];
-		const int gameruleDeckError = IsGameRuleDisallowed(hostInfoRule, cit->second.ot);
+		int gameruleDeckError = checkAvail(cit->second.ot, avail);
 		if(gameruleDeckError)
 			return (gameruleDeckError << 28) + cit->first;
 		int code = cit->second.alias ? cit->second.alias : cit->first;
